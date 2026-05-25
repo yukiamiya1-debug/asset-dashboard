@@ -1,4 +1,9 @@
-const CACHE_NAME = "asset-dashboard-v2";
+// =========================
+// ASSET DASHBOARD COMPLETE v4
+// service-worker.js
+// =========================
+
+const CACHE_NAME = "asset-dashboard-v4";
 
 const urlsToCache = [
   "./",
@@ -18,6 +23,7 @@ self.addEventListener("install", event => {
       .then(cache => cache.addAll(urlsToCache))
 
   );
+
 });
 
 self.addEventListener("activate", event => {
@@ -31,7 +37,9 @@ self.addEventListener("activate", event => {
         keys.map(key => {
 
           if(key !== CACHE_NAME){
+
             return caches.delete(key);
+
           }
 
         })
