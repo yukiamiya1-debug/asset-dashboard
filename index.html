@@ -1,5 +1,5 @@
 <!-- =========================
-ASSET DASHBOARD COMPLETE v2
+ASSET DASHBOARD COMPLETE v3
 index.html
 ========================= -->
 <!DOCTYPE html>
@@ -159,6 +159,7 @@ font-weight:600;
 .asset-value{
 font-size:20px;
 font-weight:700;
+text-align:right;
 }
 
 .asset-yen{
@@ -210,12 +211,6 @@ transition:.2s;
 button:active{
 transform:scale(.97);
 opacity:.8;
-}
-
-.save-btn{
-background:var(--gold);
-color:#000;
-width:100%;
 }
 
 .delete-btn{
@@ -319,6 +314,7 @@ width:240px;
 height:240px;
 border-radius:50%;
 position:relative;
+transition:1s ease;
 }
 
 .pie::after{
@@ -385,6 +381,7 @@ border-radius:50%;
 </div>
 
 <div id="pinLock" class="pin-screen">
+
 <div class="pin-title">¥</div>
 
 <input
@@ -398,6 +395,7 @@ placeholder="----"
 <button class="pin-btn" onclick="unlock()">
 ENTER
 </button>
+
 </div>
 
 <h1>総資産</h1>
@@ -551,14 +549,13 @@ console.log(e);
 }
 }
 
-function saveState(){
+function saveLocal(){
 
 localStorage.setItem(
 "assetData",
 JSON.stringify(state)
 );
 
-render();
 }
 
 function formatJPY(num){
@@ -682,6 +679,7 @@ onclick="toggleDetail('${type}',${index})"
 >
 
 <div>
+
 <div class="asset-name">
 ${item.name || '未設定'}
 </div>
@@ -771,21 +769,26 @@ name:'',
 amount:''
 });
 
-saveState();
+saveLocal();
+
+render();
 }
 
 function deleteAsset(type,index){
 
 state[type].splice(index,1);
 
-saveState();
+saveLocal();
+
+render();
 }
 
 function updateField(type,index,key,value){
 
 state[type][index][key] = value;
 
-saveState();
+saveLocal();
+
 }
 
 function renderPie(total){
