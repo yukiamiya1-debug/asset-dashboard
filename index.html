@@ -1,5 +1,5 @@
 <!-- =========================
-ASSET DASHBOARD COMPLETE v1
+ASSET DASHBOARD COMPLETE v2
 index.html
 ========================= -->
 <!DOCTYPE html>
@@ -17,6 +17,19 @@ index.html
 <link rel="manifest" href="manifest.json">
 
 <style>
+
+:root{
+--gold:#d4af37;
+--bg:#000;
+--card1:#0f0f0f;
+--card2:#181818;
+--line:#252525;
+--green:#00d26a;
+--red:#ff4d4f;
+--text:#fff;
+--sub:#8f8f8f;
+}
+
 *{
 margin:0;
 padding:0;
@@ -28,63 +41,107 @@ font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 body{
 background:#000;
 color:#fff;
-padding:20px;
-padding-bottom:120px;
+padding:
+calc(env(safe-area-inset-top) + 48px)
+20px
+140px;
+overflow-x:hidden;
 }
 
 h1{
-font-size:32px;
-margin-bottom:6px;
+font-size:15px;
+color:#999;
+font-weight:500;
+margin-bottom:10px;
 }
 
 .sub{
-color:#888;
-font-size:13px;
-margin-bottom:25px;
+color:#777;
+font-size:12px;
+margin-top:8px;
 }
 
 .card{
-background:#111;
-border:1px solid #222;
-border-radius:20px;
-padding:18px;
-margin-bottom:18px;
+background:
+linear-gradient(
+180deg,
+rgba(255,255,255,.03),
+rgba(255,255,255,.01)
+);
+
+backdrop-filter:blur(20px);
+
+border:1px solid rgba(255,255,255,.06);
+
+border-radius:28px;
+
+padding:22px;
+
+margin-bottom:24px;
+
+box-shadow:
+0 0 30px rgba(0,0,0,.5),
+inset 0 1px 1px rgba(255,255,255,.03);
+
+transition:.25s;
+}
+
+.card:active{
+transform:scale(.99);
 }
 
 .total{
-font-size:42px;
+font-size:52px;
 font-weight:700;
-margin-top:10px;
-color:#d4af37;
+line-height:1.05;
+color:var(--gold);
+letter-spacing:-2px;
 }
 
 .change{
-margin-top:8px;
-font-size:14px;
+margin-top:14px;
+font-size:15px;
 font-weight:600;
 }
 
 .plus{
-color:#00c853;
+color:var(--green);
 }
 
 .minus{
-color:#ff5252;
+color:var(--red);
 }
 
 .section-title{
-font-size:20px;
-margin-bottom:15px;
+font-size:24px;
+font-weight:700;
+margin-bottom:20px;
 display:flex;
 justify-content:space-between;
 align-items:center;
 }
 
 .asset-item{
-background:#181818;
-border-radius:14px;
-padding:14px;
-margin-bottom:10px;
+background:
+linear-gradient(
+180deg,
+#161616,
+#101010
+);
+
+border-radius:22px;
+
+padding:18px;
+
+margin-bottom:14px;
+
+border:1px solid rgba(255,255,255,.04);
+
+transition:.25s;
+}
+
+.asset-item:active{
+transform:scale(.985);
 }
 
 .asset-top{
@@ -95,71 +152,87 @@ cursor:pointer;
 }
 
 .asset-name{
-font-size:17px;
+font-size:18px;
 font-weight:600;
 }
 
 .asset-value{
-font-size:17px;
+font-size:20px;
 font-weight:700;
+}
+
+.asset-yen{
+font-size:13px;
+color:#888;
+margin-top:5px;
+text-align:right;
 }
 
 .asset-detail{
 display:none;
-margin-top:15px;
+margin-top:18px;
+animation:fade .25s ease;
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(-5px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
 }
 
 .asset-detail input{
 width:100%;
-padding:12px;
-margin-bottom:10px;
+padding:16px;
+margin-bottom:12px;
 border:none;
-border-radius:10px;
-background:#222;
+border-radius:16px;
+background:#1d1d1d;
 color:#fff;
-font-size:15px;
+font-size:16px;
+outline:none;
 }
 
 button{
 border:none;
-border-radius:12px;
-padding:12px 14px;
-font-size:14px;
-font-weight:600;
+border-radius:18px;
+padding:16px;
+font-size:15px;
+font-weight:700;
 cursor:pointer;
+transition:.2s;
+}
+
+button:active{
+transform:scale(.97);
+opacity:.8;
 }
 
 .save-btn{
-background:#d4af37;
+background:var(--gold);
 color:#000;
 width:100%;
 }
 
 .delete-btn{
-background:#ff5252;
-color:#fff;
-margin-top:10px;
+background:#2b1111;
+color:#ff5f5f;
+margin-top:12px;
 width:100%;
 }
 
 .add-btn{
-background:#222;
-color:#d4af37;
-}
-
-.graph-box{
-height:220px;
-display:flex;
-align-items:flex-end;
-gap:8px;
-margin-top:20px;
-}
-
-.bar{
-flex:1;
-background:#d4af37;
-border-radius:8px 8px 0 0;
-opacity:.85;
+width:42px;
+height:42px;
+border-radius:50%;
+background:#191919;
+color:var(--gold);
+font-size:22px;
+padding:0;
 }
 
 .pin-screen{
@@ -175,28 +248,29 @@ padding:30px;
 }
 
 .pin-title{
-font-size:32px;
-color:#d4af37;
-margin-bottom:25px;
+font-size:80px;
+color:var(--gold);
+margin-bottom:30px;
 }
 
 .pin-input{
-width:220px;
+width:240px;
 padding:18px;
-font-size:28px;
+font-size:32px;
 text-align:center;
-letter-spacing:10px;
+letter-spacing:12px;
 background:#111;
 border:none;
-border-radius:16px;
+border-radius:22px;
 color:#fff;
-margin-bottom:15px;
+margin-bottom:18px;
+outline:none;
 }
 
 .pin-btn{
-background:#d4af37;
+background:var(--gold);
 color:#000;
-width:220px;
+width:240px;
 }
 
 .splash{
@@ -209,19 +283,20 @@ justify-content:center;
 flex-direction:column;
 z-index:10000;
 animation:fadeOut 2s forwards;
-animation-delay:1.5s;
+animation-delay:1.4s;
 }
 
 .splash-logo{
-font-size:70px;
-color:#d4af37;
+font-size:80px;
+color:var(--gold);
 font-weight:700;
 }
 
 .splash-text{
-margin-top:10px;
-letter-spacing:4px;
-color:#999;
+margin-top:12px;
+letter-spacing:5px;
+color:#777;
+font-size:13px;
 }
 
 @keyframes fadeOut{
@@ -230,6 +305,75 @@ opacity:0;
 visibility:hidden;
 }
 }
+
+.pie-wrap{
+display:flex;
+align-items:center;
+justify-content:center;
+position:relative;
+margin-top:20px;
+}
+
+.pie{
+width:240px;
+height:240px;
+border-radius:50%;
+position:relative;
+}
+
+.pie::after{
+content:'';
+position:absolute;
+inset:38px;
+background:#000;
+border-radius:50%;
+box-shadow:0 0 25px rgba(0,0,0,.8);
+}
+
+.pie-center{
+position:absolute;
+text-align:center;
+z-index:2;
+}
+
+.pie-center .small{
+font-size:12px;
+color:#888;
+}
+
+.pie-center .big{
+font-size:28px;
+font-weight:700;
+color:#fff;
+margin-top:5px;
+}
+
+.legend{
+margin-top:30px;
+display:flex;
+flex-direction:column;
+gap:14px;
+}
+
+.legend-item{
+display:flex;
+align-items:center;
+justify-content:space-between;
+font-size:15px;
+}
+
+.legend-left{
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.dot{
+width:12px;
+height:12px;
+border-radius:50%;
+}
+
 </style>
 </head>
 
@@ -242,178 +386,378 @@ visibility:hidden;
 
 <div id="pinLock" class="pin-screen">
 <div class="pin-title">¥</div>
-<input id="pinInput" class="pin-input" type="password" maxlength="4" placeholder="----">
-<button class="pin-btn" onclick="unlock()">ENTER</button>
+
+<input
+id="pinInput"
+class="pin-input"
+type="password"
+maxlength="4"
+placeholder="----"
+>
+
+<button class="pin-btn" onclick="unlock()">
+ENTER
+</button>
 </div>
 
 <h1>総資産</h1>
-<div class="sub">Realtime USDT/JPY</div>
 
 <div class="card">
-<div id="totalJPY" class="total">¥0</div>
-<div id="changeText" class="change">0%</div>
+
+<div id="totalJPY" class="total">
+¥0
+</div>
+
+<div id="changeText" class="change">
+0%
+</div>
+
+<div class="sub">
+Realtime USDT/JPY
+</div>
+
 </div>
 
 <div class="card">
+
 <div class="section-title">
-<span>資産推移</span>
+<span>資産割合</span>
 </div>
 
-<div class="graph-box" id="graphBox"></div>
+<div class="pie-wrap">
+
+<div class="pie" id="pieChart"></div>
+
+<div class="pie-center">
+<div class="small">総資産</div>
+<div class="big" id="pieTotal">¥0</div>
+</div>
+
+</div>
+
+<div class="legend">
+
+<div class="legend-item">
+<div class="legend-left">
+<div class="dot" style="background:#d4af37"></div>
+銀行
+</div>
+<div id="bankPercent">0%</div>
+</div>
+
+<div class="legend-item">
+<div class="legend-left">
+<div class="dot" style="background:#3b82f6"></div>
+証券
+</div>
+<div id="stockPercent">0%</div>
+</div>
+
+<div class="legend-item">
+<div class="legend-left">
+<div class="dot" style="background:#8b5cf6"></div>
+Crypto
+</div>
+<div id="cryptoPercent">0%</div>
+</div>
+
+</div>
+
 </div>
 
 <div class="card">
+
 <div class="section-title">
 <span>銀行</span>
-<button class="add-btn" onclick="addAsset('bank')">＋</button>
+
+<button
+class="add-btn"
+onclick="addAsset('bank')"
+>
+＋
+</button>
+
 </div>
+
 <div id="bankList"></div>
+
 </div>
 
 <div class="card">
+
 <div class="section-title">
 <span>証券</span>
-<button class="add-btn" onclick="addAsset('stock')">＋</button>
+
+<button
+class="add-btn"
+onclick="addAsset('stock')"
+>
+＋
+</button>
+
 </div>
+
 <div id="stockList"></div>
+
 </div>
 
 <div class="card">
+
 <div class="section-title">
 <span>Crypto</span>
-<button class="add-btn" onclick="addAsset('crypto')">＋</button>
+
+<button
+class="add-btn"
+onclick="addAsset('crypto')"
+>
+＋
+</button>
+
 </div>
+
 <div id="cryptoList"></div>
+
 </div>
 
 <script>
+
 let usdtRate = 150;
 
-const state = JSON.parse(localStorage.getItem("assetData")) || {
+const state =
+JSON.parse(localStorage.getItem("assetData"))
+||
+{
 bank:[],
 stock:[],
 crypto:[]
 };
 
-const historyData = JSON.parse(localStorage.getItem("assetHistory")) || [];
-
 async function fetchRate(){
+
 try{
+
 const res = await fetch(
 'https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=jpy'
 );
+
 const data = await res.json();
+
 usdtRate = data.tether.jpy;
+
 render();
+
 }catch(e){
 console.log(e);
 }
 }
 
 function saveState(){
-localStorage.setItem("assetData",JSON.stringify(state));
 
-const total = calculateTotal();
-
-historyData.push({
-date:Date.now(),
-total
-});
-
-if(historyData.length > 30){
-historyData.shift();
-}
-
-localStorage.setItem("assetHistory",JSON.stringify(historyData));
-
-localStorage.setItem("lastTotal",total);
+localStorage.setItem(
+"assetData",
+JSON.stringify(state)
+);
 
 render();
 }
 
+function formatJPY(num){
+
+num = Math.floor(num);
+
+return "¥" + num.toLocaleString();
+
+}
+
 function calculateTotal(){
+
 let total = 0;
 
-state.bank.forEach(i=> total += Number(i.amount||0));
-state.stock.forEach(i=> total += Number(i.amount||0));
-state.crypto.forEach(i=> total += Number(i.amount||0) * usdtRate);
+state.bank.forEach(i=>{
+total += Number(i.amount||0);
+});
+
+state.stock.forEach(i=>{
+total += Number(i.amount||0);
+});
+
+state.crypto.forEach(i=>{
+total += Number(i.amount||0) * usdtRate;
+});
 
 return total;
 }
 
 function render(){
 
-renderSection('bank','bankList','¥');
-renderSection('stock','stockList','¥');
+renderSection('bank','bankList','JPY');
+
+renderSection('stock','stockList','JPY');
+
 renderSection('crypto','cryptoList','USDT');
 
 const total = calculateTotal();
 
 document.getElementById("totalJPY").innerText =
-"¥" + total.toLocaleString();
+formatJPY(total);
 
-const prev = Number(localStorage.getItem("prevTotal")) || total;
+document.getElementById("pieTotal").innerText =
+formatJPY(total);
 
-const diff = ((total-prev)/prev*100).toFixed(2);
+renderChange(total);
 
-const changeEl = document.getElementById("changeText");
+renderPie(total);
 
-if(diff >=0){
-changeEl.className="change plus";
-changeEl.innerText=`▲ ${diff}%`;
+}
+
+function renderChange(total){
+
+const prev =
+Number(localStorage.getItem("prevTotal"))
+|| total;
+
+const diff =
+(((total-prev)/prev)*100).toFixed(2);
+
+const changeEl =
+document.getElementById("changeText");
+
+if(diff >= 0){
+
+changeEl.className = "change plus";
+
+changeEl.innerText =
+`▲ ${diff}%`;
+
 }else{
-changeEl.className="change minus";
-changeEl.innerText=`▼ ${diff}%`;
+
+changeEl.className = "change minus";
+
+changeEl.innerText =
+`▼ ${Math.abs(diff)}%`;
+
 }
 
 localStorage.setItem("prevTotal",total);
-
-renderGraph();
 }
 
 function renderSection(type,container,symbol){
 
 const wrap = document.getElementById(container);
+
 wrap.innerHTML='';
 
 state[type].forEach((item,index)=>{
 
 const el = document.createElement('div');
+
 el.className='asset-item';
 
+const value =
+Number(item.amount||0);
+
+let mainValue = '';
+let subValue = '';
+
+if(symbol === 'USDT'){
+
+mainValue =
+`${value.toLocaleString()} USDT`;
+
+subValue =
+`≈ ${formatJPY(value * usdtRate)}`;
+
+}else{
+
+mainValue =
+formatJPY(value);
+
+}
+
 el.innerHTML=`
-<div class="asset-top" onclick="toggleDetail('${type}',${index})">
-<div class="asset-name">${item.name || '未設定'}</div>
+
+<div
+class="asset-top"
+onclick="toggleDetail('${type}',${index})"
+>
+
+<div>
+<div class="asset-name">
+${item.name || '未設定'}
+</div>
+
+${symbol==='USDT'
+? `<div class="asset-yen">${subValue}</div>`
+: ''
+}
+
+</div>
+
 <div class="asset-value">
-${symbol}${Number(item.amount||0).toLocaleString()}
-</div>
+${mainValue}
 </div>
 
-<div class="asset-detail" id="${type}-${index}">
-<input placeholder="名称"
+</div>
+
+<div
+class="asset-detail"
+id="${type}-${index}"
+>
+
+<input
+placeholder="名称"
 value="${item.name || ''}"
-oninput="updateField('${type}',${index},'name',this.value)">
+oninput="
+updateField(
+'${type}',
+${index},
+'name',
+this.value
+)
+"
+>
 
-<input placeholder="${symbol==='USDT'?'USDT':'JPY'}"
+<input
+placeholder="${symbol}"
 type="number"
 value="${item.amount || ''}"
-oninput="updateField('${type}',${index},'amount',this.value)">
+oninput="
+updateField(
+'${type}',
+${index},
+'amount',
+this.value
+)
+"
+>
 
-<button class="save-btn" onclick="saveState()">保存</button>
-
-<button class="delete-btn"
-onclick="deleteAsset('${type}',${index})">
+<button
+class="delete-btn"
+onclick="
+deleteAsset(
+'${type}',
+${index}
+)
+"
+>
 削除
 </button>
+
 </div>
+
 `;
 
 wrap.appendChild(el);
+
 });
+
 }
 
 function toggleDetail(type,index){
-const el = document.getElementById(`${type}-${index}`);
+
+const el =
+document.getElementById(`${type}-${index}`);
+
 el.style.display =
 el.style.display === 'block'
 ? 'none'
@@ -421,6 +765,7 @@ el.style.display === 'block'
 }
 
 function addAsset(type){
+
 state[type].push({
 name:'',
 amount:''
@@ -430,64 +775,116 @@ saveState();
 }
 
 function deleteAsset(type,index){
+
 state[type].splice(index,1);
+
 saveState();
 }
 
 function updateField(type,index,key,value){
-state[type][index][key]=value;
+
+state[type][index][key] = value;
+
+saveState();
 }
 
-function renderGraph(){
+function renderPie(total){
 
-const graph = document.getElementById("graphBox");
+const bank =
+state.bank.reduce(
+(a,b)=>a+Number(b.amount||0),
+0
+);
 
-graph.innerHTML='';
+const stock =
+state.stock.reduce(
+(a,b)=>a+Number(b.amount||0),
+0
+);
 
-const max = Math.max(...historyData.map(i=>i.total),1);
+const crypto =
+state.crypto.reduce(
+(a,b)=>a+(Number(b.amount||0)*usdtRate),
+0
+);
 
-historyData.forEach(i=>{
+const bankP = total
+? (bank/total)*100
+: 0;
 
-const h = (i.total/max)*180;
+const stockP = total
+? (stock/total)*100
+: 0;
 
-const bar = document.createElement('div');
+const cryptoP = total
+? (crypto/total)*100
+: 0;
 
-bar.className='bar';
+document.getElementById("bankPercent")
+.innerText = `${bankP.toFixed(1)}%`;
 
-bar.style.height = h+'px';
+document.getElementById("stockPercent")
+.innerText = `${stockP.toFixed(1)}%`;
 
-graph.appendChild(bar);
+document.getElementById("cryptoPercent")
+.innerText = `${cryptoP.toFixed(1)}%`;
 
-});
+const pie =
+document.getElementById("pieChart");
+
+pie.style.background = `
+conic-gradient(
+#d4af37 0% ${bankP}%,
+#3b82f6 ${bankP}% ${bankP+stockP}%,
+#8b5cf6 ${bankP+stockP}% 100%
+)
+`;
 }
 
 function unlock(){
 
-const input = document.getElementById("pinInput").value;
+const input =
+document.getElementById("pinInput").value;
 
-let pin = localStorage.getItem("appPin");
+let pin =
+localStorage.getItem("appPin");
 
 if(!pin){
+
 localStorage.setItem("appPin",input);
-document.getElementById("pinLock").style.display='none';
+
+document.getElementById("pinLock")
+.style.display='none';
+
 return;
 }
 
 if(input === pin){
-document.getElementById("pinLock").style.display='none';
+
+document.getElementById("pinLock")
+.style.display='none';
+
 }else{
+
 alert("PIN ERROR");
+
 }
 }
 
 fetchRate();
+
 render();
 
 setInterval(fetchRate,300000);
 
 if('serviceWorker' in navigator){
-navigator.serviceWorker.register('./service-worker.js');
+
+navigator.serviceWorker.register(
+'./service-worker.js'
+);
+
 }
+
 </script>
 
 </body>
