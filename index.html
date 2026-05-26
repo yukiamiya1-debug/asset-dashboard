@@ -1,547 +1,360 @@
-# Asset Dashboard 完全版（折りたたみUI版）
-
-## 今回の改善内容
-
-### ✅ 改善済み
-
-* BANK / STOCK / CRYPTO の折りたたみUI
-* タップしたカテゴリだけ展開
-* 編集画面常時表示問題を解消
-* 名前編集可能
-* 金額編集可能
-* localStorage自動保存
-* 高級Ledger風UI
-* iPhone PWA対応
-* キーボード閉じ問題対策済み
-
----
-
-# index.html（完全版）
-
-```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
 
-<title>Asset Dashboard</title>
+  <title>Asset Dashboard</title>
 
-<link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json" />
 
-<meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Asset Dashboard">
+  <meta name="theme-color" content="#000000" />
 
-<link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png" />
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-<style>
+    body {
+      background: #000;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      padding:
+        calc(env(safe-area-inset-top) + 20px)
+        16px
+        calc(env(safe-area-inset-bottom) + 30px);
+      min-height: 100vh;
+    }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
--webkit-tap-highlight-color:transparent;
-}
+    h1 {
+      text-align: center;
+      color: #d4af37;
+      font-size: 32px;
+      margin-bottom: 28px;
+      letter-spacing: 1px;
+    }
 
-html,body{
-background:#000;
-color:#fff;
-font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-overflow-x:hidden;
-}
+    .section {
+      background: linear-gradient(
+        180deg,
+        rgba(40,40,40,0.95),
+        rgba(15,15,15,0.95)
+      );
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 24px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow:
+        0 0 20px rgba(212,175,55,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+      overflow: hidden;
+    }
 
-body{
-padding:
-calc(env(safe-area-inset-top) + 20px)
-20px
-calc(env(safe-area-inset-bottom) + 40px);
-}
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
 
-.container{
-max-width:520px;
-margin:0 auto;
-}
+    .section-title {
+      font-size: 22px;
+      color: #d4af37;
+      font-weight: 700;
+    }
 
-.header{
-margin-bottom:28px;
-}
+    .toggle {
+      font-size: 24px;
+      color: #d4af37;
+    }
 
-.logo{
-font-size:40px;
-font-weight:700;
-color:#d4af37;
-margin-bottom:8px;
-}
+    .section-content {
+      margin-top: 16px;
+      display: none;
+      animation: fade 0.25s ease;
+    }
 
-.sub{
-font-size:12px;
-letter-spacing:4px;
-color:#666;
-}
+    .section-content.active {
+      display: block;
+    }
 
-.total-card{
-background:linear-gradient(
-145deg,
-rgba(20,20,20,0.96),
-rgba(8,8,8,0.96)
-);
-border-radius:28px;
-padding:28px;
-margin-bottom:28px;
-border:1px solid rgba(212,175,55,0.18);
-}
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-.total-label{
-font-size:13px;
-color:#888;
-margin-bottom:10px;
-}
+    .asset-card {
+      background: rgba(255,255,255,0.04);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
 
-.total-value{
-font-size:42px;
-font-weight:700;
-}
+    input {
+      width: 100%;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 14px;
+      color: white;
+      padding: 14px;
+      margin-top: 10px;
+      font-size: 16px;
+      outline: none;
+    }
 
-.chart-wrap{
-background:#0d0d0d;
-border-radius:28px;
-padding:20px;
-margin-bottom:28px;
-}
+    input:focus {
+      border-color: #d4af37;
+      box-shadow: 0 0 10px rgba(212,175,55,0.25);
+    }
 
-.section{
-margin-bottom:18px;
-}
+    .amount {
+      margin-top: 10px;
+      font-size: 20px;
+      color: #d4af37;
+      font-weight: bold;
+    }
 
-.section-header{
-background:linear-gradient(
-145deg,
-rgba(20,20,20,0.96),
-rgba(8,8,8,0.96)
-);
-border-radius:24px;
-padding:20px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-cursor:pointer;
-border:1px solid rgba(255,255,255,0.05);
-}
+    .sub {
+      color: #999;
+      font-size: 14px;
+      margin-top: 4px;
+    }
 
-.section-title{
-font-size:18px;
-font-weight:700;
-color:#d4af37;
-}
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 14px;
+      margin-top: 12px;
+      background: linear-gradient(180deg, #d4af37, #8f6b10);
+      color: black;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-.section-total{
-font-size:16px;
-font-weight:600;
-}
+    .total {
+      background: linear-gradient(
+        180deg,
+        rgba(212,175,55,0.2),
+        rgba(212,175,55,0.08)
+      );
+      border-radius: 24px;
+      padding: 22px;
+      margin-bottom: 24px;
+      text-align: center;
+      border: 1px solid rgba(212,175,55,0.3);
+    }
 
-.arrow{
-font-size:20px;
-color:#888;
-}
+    .total h2 {
+      color: #aaa;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
 
-.content{
-display:none;
-padding-top:14px;
-animation:fade 0.25s ease;
-}
-
-.content.active{
-display:block;
-}
-
-@keyframes fade{
-from{
-opacity:0;
-transform:translateY(-4px);
-}
-
-to{
-opacity:1;
-transform:translateY(0);
-}
-}
-
-.card{
-background:#0d0d0d;
-border-radius:22px;
-padding:18px;
-margin-bottom:14px;
-}
-
-.name-input,
-.input{
-width:100%;
-background:#111;
-border:none;
-border-radius:14px;
-padding:14px;
-color:#fff;
-font-size:16px;
-outline:none;
-}
-
-.name-input{
-margin-bottom:12px;
-font-weight:600;
-}
-
-.row{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:12px;
-}
-
-.value{
-font-size:18px;
-font-weight:700;
-}
-
-.crypto-main{
-font-size:24px;
-font-weight:700;
-color:#d4af37;
-}
-
-.crypto-jpy{
-font-size:14px;
-color:#888;
-margin-top:4px;
-}
-
-.add-btn{
-width:100%;
-border:none;
-border-radius:22px;
-padding:16px;
-margin-top:10px;
-background:#d4af37;
-color:#000;
-font-size:16px;
-font-weight:700;
-}
-
-</style>
+    .total-value {
+      color: #d4af37;
+      font-size: 36px;
+      font-weight: 700;
+    }
+  </style>
 </head>
 
 <body>
-
-<div class="container">
-
-<div class="header">
-<div class="logo">¥</div>
-<div class="sub">ASSET DASHBOARD</div>
-</div>
-
-<div class="total-card">
-<div class="total-label">TOTAL ASSETS</div>
-<div class="total-value" id="totalAssets">¥0</div>
-</div>
-
-<div class="chart-wrap">
-<canvas id="assetChart"></canvas>
-</div>
-
-<div id="app"></div>
-
-</div>
-
-<script>
-
-const STORAGE_KEY = "asset-dashboard-data";
-
-let activeSection = null;
-
-let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-  bank: [],
-  stock: [],
-  crypto: []
-};
-
-let usdtPrice = 150;
-
-async function fetchUSDTPrice(){
-
-try{
-
-const res = await fetch(
-"https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=jpy"
-);
-
-const data = await res.json();
-
-usdtPrice = data.tether.jpy || 150;
-
-render();
-
-}catch(e){
-console.log(e);
-}
-
-}
-
-function saveLocal(){
-localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-updateTotal();
-updateChart();
-}
-
-function formatYen(num){
-return "¥" + Number(num).toLocaleString("ja-JP");
-}
-
-function getSectionTotal(type){
-
-if(type === "crypto"){
-return state[type].reduce((a,b)=>a + (Number(b.amount) * usdtPrice),0);
-}
-
-return state[type].reduce((a,b)=>a + Number(b.amount),0);
-
-}
-
-function toggleSection(section){
-
-if(activeSection === section){
-activeSection = null;
-}else{
-activeSection = section;
-}
-
-render();
-
-}
-
-function createSection(title,key,isCrypto=false){
-
-const total = getSectionTotal(key);
-
-return `
-
-<div class="section">
-
-<div class="section-header" onclick="toggleSection('${key}')">
-
-<div>
-<div class="section-title">${title}</div>
-<div class="section-total">${formatYen(Math.round(total))}</div>
-</div>
-
-<div class="arrow">
-${activeSection === key ? '▼' : '▶'}
-</div>
-
-</div>
-
-<div class="content ${activeSection === key ? 'active' : ''}">
-
-${state[key].map((item,index)=>{
-
-const jpy = isCrypto
-? Math.round(item.amount * usdtPrice)
-: item.amount;
-
-return `
-
-<div class="card">
-
-<input
-class="name-input"
-type="text"
-placeholder="名称入力"
-value="${item.name}"
-oninput="updateName('${key}',${index},this.value)"
->
-
-<div class="row">
-
-<div>
-
-${
-isCrypto
-? `
-<div class="crypto-main">
-${item.amount} USDT
-</div>
-
-<div class="crypto-jpy">
-≈ ${formatYen(jpy)}
-</div>
-`
-: `
-<div class="value">
-${formatYen(item.amount)}
-</div>
-`
-}
-
-</div>
-
-</div>
-
-<input
-class="input"
-type="number"
-inputmode="decimal"
-placeholder="金額入力"
-value="${item.amount}"
-oninput="updateField('${key}',${index},this.value)"
->
-
-</div>
-
-`;
-
-}).join("")}
-
-<button
-class="add-btn"
-onclick="addAsset('${key}')"
->
-＋ 追加
-</button>
-
-</div>
-
-</div>
-
-`;
-
-}
-
-function updateName(type,index,value){
-state[type][index].name = value;
-saveLocal();
-}
-
-function updateField(type,index,value){
-state[type][index].amount = Number(value);
-saveLocal();
-}
-
-function addAsset(type){
-
-state[type].push({
-name:"",
-amount:0
-});
-
-activeSection = type;
-
-saveLocal();
-render();
-
-}
-
-function updateTotal(){
-
-let total = 0;
-
-state.bank.forEach(i=> total += Number(i.amount));
-state.stock.forEach(i=> total += Number(i.amount));
-state.crypto.forEach(i=> total += Number(i.amount * usdtPrice));
-
-document.getElementById("totalAssets").innerText =
-formatYen(Math.round(total));
-
-}
-
-let chart;
-
-function updateChart(){
-
-const bank = getSectionTotal("bank");
-const stock = getSectionTotal("stock");
-const crypto = getSectionTotal("crypto");
-
-const ctx = document.getElementById("assetChart");
-
-if(chart){
-chart.destroy();
-}
-
-chart = new Chart(ctx,{
-type:"doughnut",
-data:{
-labels:["Bank","Stock","Crypto"],
-datasets:[{
-data:[bank,stock,crypto],
-backgroundColor:["#d4af37","#666","#222"],
-borderWidth:0
-}]
-},
-options:{
-plugins:{
-legend:{
-labels:{
-color:"#999"
-}
-}
-}
-}
-});
-
-}
-
-function render(){
-
-document.getElementById("app").innerHTML = `
-
-${createSection("BANK","bank")}
-${createSection("STOCK","stock")}
-${createSection("CRYPTO","crypto",true)}
-
-`;
-
-updateTotal();
-updateChart();
-
-}
-
-fetchUSDTPrice();
-render();
-setInterval(fetchUSDTPrice,300000);
-
-if("serviceWorker" in navigator){
-navigator.serviceWorker.register("./service-worker.js");
-}
-
-</script>
-
+  <h1>Asset Dashboard</h1>
+
+  <div class="total">
+    <h2>Total Assets</h2>
+    <div class="total-value" id="totalAssets">¥0</div>
+  </div>
+
+  <div id="app"></div>
+
+  <script>
+    const app = document.getElementById("app");
+
+    const state = JSON.parse(
+      localStorage.getItem("asset-dashboard")
+    ) || {
+      bank: [],
+      stock: [],
+      crypto: [],
+    };
+
+    const sections = {
+      bank: false,
+      stock: false,
+      crypto: false,
+    };
+
+    async function getUSDTJPY() {
+      try {
+        const res = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=jpy"
+        );
+
+        const data = await res.json();
+
+        return data.tether.jpy || 150;
+      } catch {
+        return 150;
+      }
+    }
+
+    function save() {
+      localStorage.setItem(
+        "asset-dashboard",
+        JSON.stringify(state)
+      );
+    }
+
+    async function render() {
+      const usdtRate = await getUSDTJPY();
+
+      let total = 0;
+
+      app.innerHTML = "";
+
+      const categories = [
+        ["bank", "Bank"],
+        ["stock", "Stock"],
+        ["crypto", "Crypto"],
+      ];
+
+      categories.forEach(([key, title]) => {
+        const section = document.createElement("div");
+        section.className = "section";
+
+        const contentActive = sections[key]
+          ? "active"
+          : "";
+
+        section.innerHTML = `
+          <div class="section-header" onclick="toggleSection('${key}')">
+            <div class="section-title">${title}</div>
+            <div class="toggle">
+              ${sections[key] ? "−" : "+"}
+            </div>
+          </div>
+
+          <div class="section-content ${contentActive}">
+            <div id="${key}-list"></div>
+
+            <button onclick="addAsset('${key}')">
+              Add ${title}
+            </button>
+          </div>
+        `;
+
+        app.appendChild(section);
+
+        const list = section.querySelector(`#${key}-list`);
+
+        state[key].forEach((item, index) => {
+          let yen = Number(item.amount || 0);
+
+          if (key === "crypto") {
+            yen = yen * usdtRate;
+          }
+
+          total += yen;
+
+          const card = document.createElement("div");
+
+          card.className = "asset-card";
+
+          card.innerHTML = `
+            <input
+              value="${item.name}"
+              placeholder="Name"
+              oninput="updateField('${key}', ${index}, 'name', this.value)"
+            />
+
+            <input
+              value="${item.amount}"
+              placeholder="${
+                key === "crypto"
+                  ? "USDT"
+                  : "JPY"
+              }"
+              type="number"
+              oninput="updateField('${key}', ${index}, 'amount', this.value)"
+            />
+
+            ${
+              key === "crypto"
+                ? `
+                <div class="amount">
+                  ${Number(item.amount || 0)} USDT
+                </div>
+
+                <div class="sub">
+                  ≈ ¥${Math.round(yen).toLocaleString()}
+                </div>
+              `
+                : `
+                <div class="amount">
+                  ¥${Math.round(yen).toLocaleString()}
+                </div>
+              `
+            }
+          `;
+
+          list.appendChild(card);
+        });
+      });
+
+      document.getElementById(
+        "totalAssets"
+      ).innerText =
+        "¥" + Math.round(total).toLocaleString();
+    }
+
+    function toggleSection(key) {
+      sections[key] = !sections[key];
+      render();
+    }
+
+    function addAsset(type) {
+      state[type].push({
+        name: "",
+        amount: "",
+      });
+
+      save();
+
+      sections[type] = false;
+
+      render();
+    }
+
+    function updateField(type, index, field, value) {
+      state[type][index][field] = value;
+      save();
+    }
+
+    render();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register(
+        "./service-worker.js"
+      );
+    }
+  </script>
 </body>
 </html>
-```
-
----
-
-# 使い方
-
-## GitHubでやること
-
-### ① index.html を開く
-
-### ② 今のコード全部消す
-
-### ③ この完全版を丸ごとコピペ
-
-### ④ Commit changes
-
----
-
-# iPhoneで更新反映
-
-1. ホーム画面アプリ削除
-2. SafariでGitHub Pagesを開く
-3. 再読み込み
-4. ホーム画面に追加
-
-これで最新版になる。
