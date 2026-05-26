@@ -1,9 +1,4 @@
-// =========================
-// ASSET DASHBOARD COMPLETE v4
-// service-worker.js
-// =========================
-
-const CACHE_NAME = "asset-dashboard-v4";
+const CACHE_NAME = "asset-dashboard-v5";
 
 const urlsToCache = [
   "./",
@@ -15,14 +10,12 @@ const urlsToCache = [
 
 self.addEventListener("install", event => {
 
-  self.skipWaiting();
-
   event.waitUntil(
-
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
-
   );
+
+  self.skipWaiting();
 
 });
 
@@ -37,9 +30,7 @@ self.addEventListener("activate", event => {
         keys.map(key => {
 
           if(key !== CACHE_NAME){
-
             return caches.delete(key);
-
           }
 
         })
