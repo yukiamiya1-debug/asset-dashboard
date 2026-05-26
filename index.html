@@ -1,184 +1,57 @@
-<!-- =========================
-ASSET DASHBOARD COMPLETE v3
-index.html
-========================= -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <title>Asset Dashboard</title>
 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
-
 <link rel="manifest" href="manifest.json">
 
-<style>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Asset Dashboard">
 
-:root{
---gold:#d4af37;
---bg:#000;
---card1:#0f0f0f;
---card2:#181818;
---line:#252525;
---green:#00d26a;
---red:#ff4d4f;
---text:#fff;
---sub:#8f8f8f;
-}
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
 
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
 -webkit-tap-highlight-color:transparent;
-font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
 
-body{
+html,body{
 background:#000;
 color:#fff;
-padding:
-calc(env(safe-area-inset-top) + 48px)
-20px
-140px;
+font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+height:100%;
 overflow-x:hidden;
 }
 
-h1{
-font-size:15px;
-color:#999;
-font-weight:500;
-margin-bottom:10px;
+body{
+padding:
+calc(env(safe-area-inset-top) + 20px)
+20px
+calc(env(safe-area-inset-bottom) + 40px);
 }
 
-.sub{
-color:#777;
-font-size:12px;
-margin-top:8px;
+.container{
+max-width:520px;
+margin:0 auto;
+animation:fadeIn 0.6s ease;
 }
 
-.card{
-background:
-linear-gradient(
-180deg,
-rgba(255,255,255,.03),
-rgba(255,255,255,.01)
-);
-
-backdrop-filter:blur(20px);
-
-border:1px solid rgba(255,255,255,.06);
-
-border-radius:28px;
-
-padding:22px;
-
-margin-bottom:24px;
-
-box-shadow:
-0 0 30px rgba(0,0,0,.5),
-inset 0 1px 1px rgba(255,255,255,.03);
-
-transition:.25s;
-}
-
-.card:active{
-transform:scale(.99);
-}
-
-.total{
-font-size:52px;
-font-weight:700;
-line-height:1.05;
-color:var(--gold);
-letter-spacing:-2px;
-}
-
-.change{
-margin-top:14px;
-font-size:15px;
-font-weight:600;
-}
-
-.plus{
-color:var(--green);
-}
-
-.minus{
-color:var(--red);
-}
-
-.section-title{
-font-size:24px;
-font-weight:700;
-margin-bottom:20px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.asset-item{
-background:
-linear-gradient(
-180deg,
-#161616,
-#101010
-);
-
-border-radius:22px;
-
-padding:18px;
-
-margin-bottom:14px;
-
-border:1px solid rgba(255,255,255,.04);
-
-transition:.25s;
-}
-
-.asset-item:active{
-transform:scale(.985);
-}
-
-.asset-top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-cursor:pointer;
-}
-
-.asset-name{
-font-size:18px;
-font-weight:600;
-}
-
-.asset-value{
-font-size:20px;
-font-weight:700;
-text-align:right;
-}
-
-.asset-yen{
-font-size:13px;
-color:#888;
-margin-top:5px;
-text-align:right;
-}
-
-.asset-detail{
-display:none;
-margin-top:18px;
-animation:fade .25s ease;
-}
-
-@keyframes fade{
+@keyframes fadeIn{
 from{
 opacity:0;
-transform:translateY(-5px);
+transform:translateY(10px);
 }
 to{
 opacity:1;
@@ -186,188 +59,157 @@ transform:translateY(0);
 }
 }
 
-.asset-detail input{
-width:100%;
-padding:16px;
-margin-bottom:12px;
-border:none;
-border-radius:16px;
-background:#1d1d1d;
-color:#fff;
-font-size:16px;
-outline:none;
+.header{
+margin-bottom:28px;
 }
 
-button{
-border:none;
-border-radius:18px;
-padding:16px;
+.logo{
+font-size:38px;
+font-weight:700;
+color:#d4af37;
+margin-bottom:8px;
+text-shadow:0 0 20px rgba(212,175,55,0.3);
+}
+
+.sub{
+font-size:13px;
+letter-spacing:4px;
+color:#666;
+}
+
+.total-card{
+background:linear-gradient(
+145deg,
+rgba(25,25,25,0.95),
+rgba(10,10,10,0.95)
+);
+border:1px solid rgba(212,175,55,0.18);
+border-radius:30px;
+padding:28px;
+margin-bottom:26px;
+box-shadow:
+0 10px 40px rgba(0,0,0,0.5),
+inset 0 1px 0 rgba(255,255,255,0.03);
+backdrop-filter:blur(20px);
+}
+
+.total-label{
+font-size:13px;
+color:#888;
+margin-bottom:10px;
+letter-spacing:1px;
+}
+
+.total-value{
+font-size:42px;
+font-weight:700;
+color:#fff;
+}
+
+.chart-wrap{
+background:#0d0d0d;
+border-radius:28px;
+padding:20px;
+margin-bottom:26px;
+border:1px solid rgba(255,255,255,0.05);
+}
+
+.section{
+margin-bottom:26px;
+}
+
+.section-title{
 font-size:15px;
 font-weight:700;
-cursor:pointer;
-transition:.2s;
+margin-bottom:14px;
+color:#d4af37;
+letter-spacing:1px;
 }
 
-button:active{
-transform:scale(.97);
-opacity:.8;
-}
-
-.delete-btn{
-background:#2b1111;
-color:#ff5f5f;
-margin-top:12px;
-width:100%;
-}
-
-.add-btn{
-width:42px;
-height:42px;
-border-radius:50%;
-background:#191919;
-color:var(--gold);
-font-size:22px;
-padding:0;
-}
-
-.pin-screen{
-position:fixed;
-inset:0;
-background:#000;
-z-index:9999;
-display:flex;
-align-items:center;
-justify-content:center;
-flex-direction:column;
-padding:30px;
-}
-
-.pin-title{
-font-size:80px;
-color:var(--gold);
-margin-bottom:30px;
-}
-
-.pin-input{
-width:240px;
+.card{
+background:linear-gradient(
+145deg,
+rgba(20,20,20,0.96),
+rgba(8,8,8,0.96)
+);
+border-radius:24px;
 padding:18px;
-font-size:32px;
-text-align:center;
-letter-spacing:12px;
-background:#111;
-border:none;
-border-radius:22px;
-color:#fff;
-margin-bottom:18px;
-outline:none;
+margin-bottom:14px;
+border:1px solid rgba(255,255,255,0.05);
+box-shadow:
+0 4px 20px rgba(0,0,0,0.35);
+transition:0.2s;
 }
 
-.pin-btn{
-background:var(--gold);
-color:#000;
-width:240px;
+.card:active{
+transform:scale(0.99);
 }
 
-.splash{
-position:fixed;
-inset:0;
-background:#000;
+.row{
 display:flex;
+justify-content:space-between;
 align-items:center;
-justify-content:center;
-flex-direction:column;
-z-index:10000;
-animation:fadeOut 2s forwards;
-animation-delay:1.4s;
+margin-bottom:14px;
 }
 
-.splash-logo{
-font-size:80px;
-color:var(--gold);
+.name{
+font-size:17px;
+font-weight:600;
+}
+
+.value{
+font-size:18px;
 font-weight:700;
 }
 
-.splash-text{
-margin-top:12px;
-letter-spacing:5px;
-color:#777;
-font-size:13px;
+.crypto-main{
+font-size:24px;
+font-weight:700;
+color:#d4af37;
 }
 
-@keyframes fadeOut{
-to{
-opacity:0;
-visibility:hidden;
-}
-}
-
-.pie-wrap{
-display:flex;
-align-items:center;
-justify-content:center;
-position:relative;
-margin-top:20px;
-}
-
-.pie{
-width:240px;
-height:240px;
-border-radius:50%;
-position:relative;
-transition:1s ease;
-}
-
-.pie::after{
-content:'';
-position:absolute;
-inset:38px;
-background:#000;
-border-radius:50%;
-box-shadow:0 0 25px rgba(0,0,0,.8);
-}
-
-.pie-center{
-position:absolute;
-text-align:center;
-z-index:2;
-}
-
-.pie-center .small{
-font-size:12px;
+.crypto-jpy{
+margin-top:4px;
+font-size:14px;
 color:#888;
 }
 
-.pie-center .big{
-font-size:28px;
-font-weight:700;
+.input{
+width:100%;
+background:#111;
+border:none;
+border-radius:16px;
+padding:14px;
 color:#fff;
-margin-top:5px;
+font-size:16px;
+outline:none;
+margin-top:10px;
 }
 
-.legend{
-margin-top:30px;
-display:flex;
-flex-direction:column;
-gap:14px;
+.input:focus{
+border:1px solid rgba(212,175,55,0.5);
 }
 
-.legend-item{
-display:flex;
-align-items:center;
-justify-content:space-between;
-font-size:15px;
+.add-btn{
+width:100%;
+border:none;
+border-radius:24px;
+padding:18px;
+font-size:17px;
+font-weight:700;
+margin-top:18px;
+background:#d4af37;
+color:#000;
+cursor:pointer;
+transition:0.2s;
 }
 
-.legend-left{
-display:flex;
-align-items:center;
-gap:10px;
+.add-btn:active{
+transform:scale(0.98);
 }
 
-.dot{
-width:12px;
-height:12px;
-border-radius:50%;
+.footer-space{
+height:50px;
 }
 
 </style>
@@ -375,172 +217,56 @@ border-radius:50%;
 
 <body>
 
-<div class="splash">
-<div class="splash-logo">¥</div>
-<div class="splash-text">ASSET DASHBOARD</div>
+<div class="container">
+
+<div class="header">
+<div class="logo">¥</div>
+<div class="sub">ASSET DASHBOARD</div>
 </div>
 
-<div id="pinLock" class="pin-screen">
-
-<div class="pin-title">¥</div>
-
-<input
-id="pinInput"
-class="pin-input"
-type="password"
-maxlength="4"
-placeholder="----"
->
-
-<button class="pin-btn" onclick="unlock()">
-ENTER
-</button>
-
+<div class="total-card">
+<div class="total-label">TOTAL ASSETS</div>
+<div class="total-value" id="totalAssets">¥0</div>
 </div>
 
-<h1>総資産</h1>
-
-<div class="card">
-
-<div id="totalJPY" class="total">
-¥0
+<div class="chart-wrap">
+<canvas id="assetChart"></canvas>
 </div>
 
-<div id="changeText" class="change">
-0%
-</div>
+<div id="app"></div>
 
-<div class="sub">
-Realtime USDT/JPY
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="section-title">
-<span>資産割合</span>
-</div>
-
-<div class="pie-wrap">
-
-<div class="pie" id="pieChart"></div>
-
-<div class="pie-center">
-<div class="small">総資産</div>
-<div class="big" id="pieTotal">¥0</div>
-</div>
-
-</div>
-
-<div class="legend">
-
-<div class="legend-item">
-<div class="legend-left">
-<div class="dot" style="background:#d4af37"></div>
-銀行
-</div>
-<div id="bankPercent">0%</div>
-</div>
-
-<div class="legend-item">
-<div class="legend-left">
-<div class="dot" style="background:#3b82f6"></div>
-証券
-</div>
-<div id="stockPercent">0%</div>
-</div>
-
-<div class="legend-item">
-<div class="legend-left">
-<div class="dot" style="background:#8b5cf6"></div>
-Crypto
-</div>
-<div id="cryptoPercent">0%</div>
-</div>
-
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="section-title">
-<span>銀行</span>
-
-<button
-class="add-btn"
-onclick="addAsset('bank')"
->
-＋
-</button>
-
-</div>
-
-<div id="bankList"></div>
-
-</div>
-
-<div class="card">
-
-<div class="section-title">
-<span>証券</span>
-
-<button
-class="add-btn"
-onclick="addAsset('stock')"
->
-＋
-</button>
-
-</div>
-
-<div id="stockList"></div>
-
-</div>
-
-<div class="card">
-
-<div class="section-title">
-<span>Crypto</span>
-
-<button
-class="add-btn"
-onclick="addAsset('crypto')"
->
-＋
-</button>
-
-</div>
-
-<div id="cryptoList"></div>
+<div class="footer-space"></div>
 
 </div>
 
 <script>
 
-let usdtRate = 150;
+const STORAGE_KEY = "asset-dashboard-data";
 
-const state =
-JSON.parse(localStorage.getItem("assetData"))
-||
-{
-bank:[],
-stock:[],
-crypto:[]
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+bank:[
+{name:"住信SBI", amount:0},
+{name:"楽天銀行", amount:0}
+],
+stock:[
+{name:"SBI証券", amount:0}
+],
+crypto:[
+{name:"USDT", amount:530}
+]
 };
 
-async function fetchRate(){
+let usdtPrice = 150;
 
+async function fetchUSDTPrice(){
 try{
-
 const res = await fetch(
-'https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=jpy'
+"https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=jpy"
 );
 
 const data = await res.json();
 
-usdtRate = data.tether.jpy;
+usdtPrice = data.tether.jpy || 150;
 
 render();
 
@@ -550,342 +276,173 @@ console.log(e);
 }
 
 function saveLocal(){
-
-localStorage.setItem(
-"assetData",
-JSON.stringify(state)
-);
-
+localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+updateTotal();
+updateChart();
 }
 
-function formatJPY(num){
-
-num = Math.floor(num);
-
-return "¥" + num.toLocaleString();
-
+function formatYen(num){
+return "¥" + Number(num).toLocaleString("ja-JP");
 }
 
-function calculateTotal(){
+function createSection(title,key,isCrypto=false){
 
-let total = 0;
+return `
+<div class="section">
 
-state.bank.forEach(i=>{
-total += Number(i.amount||0);
-});
+<div class="section-title">${title}</div>
 
-state.stock.forEach(i=>{
-total += Number(i.amount||0);
-});
+${state[key].map((item,index)=>{
 
-state.crypto.forEach(i=>{
-total += Number(i.amount||0) * usdtRate;
-});
+const jpy = isCrypto
+? Math.round(item.amount * usdtPrice)
+: item.amount;
 
-return total;
+return `
+<div class="card">
+
+<div class="row">
+<div class="name">${item.name}</div>
+
+<div>
+${
+isCrypto
+? `
+<div class="crypto-main">
+${item.amount} USDT
+</div>
+
+<div class="crypto-jpy">
+≈ ${formatYen(jpy)}
+</div>
+`
+: `
+<div class="value">
+${formatYen(item.amount)}
+</div>
+`
+}
+</div>
+</div>
+
+<input
+class="input"
+type="number"
+inputmode="decimal"
+placeholder="金額入力"
+value="${item.amount}"
+oninput="updateField('${key}',${index},this.value)"
+>
+
+</div>
+`;
+
+}).join("")}
+
+<button class="add-btn" onclick="addAsset('${key}')">
+＋ 追加
+</button>
+
+</div>
+`;
 }
 
 function render(){
 
-renderSection('bank','bankList','JPY');
-
-renderSection('stock','stockList','JPY');
-
-renderSection('crypto','cryptoList','USDT');
-
-const total = calculateTotal();
-
-document.getElementById("totalJPY").innerText =
-formatJPY(total);
-
-document.getElementById("pieTotal").innerText =
-formatJPY(total);
-
-renderChange(total);
-
-renderPie(total);
-
-}
-
-function renderChange(total){
-
-const prev =
-Number(localStorage.getItem("prevTotal"))
-|| total;
-
-const diff =
-(((total-prev)/prev)*100).toFixed(2);
-
-const changeEl =
-document.getElementById("changeText");
-
-if(diff >= 0){
-
-changeEl.className = "change plus";
-
-changeEl.innerText =
-`▲ ${diff}%`;
-
-}else{
-
-changeEl.className = "change minus";
-
-changeEl.innerText =
-`▼ ${Math.abs(diff)}%`;
-
-}
-
-localStorage.setItem("prevTotal",total);
-}
-
-function renderSection(type,container,symbol){
-
-const wrap = document.getElementById(container);
-
-wrap.innerHTML='';
-
-state[type].forEach((item,index)=>{
-
-const el = document.createElement('div');
-
-el.className='asset-item';
-
-const value =
-Number(item.amount||0);
-
-let mainValue = '';
-let subValue = '';
-
-if(symbol === 'USDT'){
-
-mainValue =
-`${value.toLocaleString()} USDT`;
-
-subValue =
-`≈ ${formatJPY(value * usdtRate)}`;
-
-}else{
-
-mainValue =
-formatJPY(value);
-
-}
-
-el.innerHTML=`
-
-<div
-class="asset-top"
-onclick="toggleDetail('${type}',${index})"
->
-
-<div>
-
-<div class="asset-name">
-${item.name || '未設定'}
-</div>
-
-${symbol==='USDT'
-? `<div class="asset-yen">${subValue}</div>`
-: ''
-}
-
-</div>
-
-<div class="asset-value">
-${mainValue}
-</div>
-
-</div>
-
-<div
-class="asset-detail"
-id="${type}-${index}"
->
-
-<input
-placeholder="名称"
-value="${item.name || ''}"
-oninput="
-updateField(
-'${type}',
-${index},
-'name',
-this.value
-)
-"
->
-
-<input
-placeholder="${symbol}"
-type="number"
-value="${item.amount || ''}"
-oninput="
-updateField(
-'${type}',
-${index},
-'amount',
-this.value
-)
-"
->
-
-<button
-class="delete-btn"
-onclick="
-deleteAsset(
-'${type}',
-${index}
-)
-"
->
-削除
-</button>
-
-</div>
-
+document.getElementById("app").innerHTML = `
+${createSection("BANK","bank")}
+${createSection("STOCK","stock")}
+${createSection("CRYPTO","crypto",true)}
 `;
 
-wrap.appendChild(el);
-
-});
-
+updateTotal();
+updateChart();
 }
 
-function toggleDetail(type,index){
+function updateField(type,index,value){
 
-const el =
-document.getElementById(`${type}-${index}`);
+state[type][index].amount = Number(value);
 
-el.style.display =
-el.style.display === 'block'
-? 'none'
-: 'block';
+saveLocal();
+
 }
 
 function addAsset(type){
 
 state[type].push({
-name:'',
-amount:''
+name:"New Asset",
+amount:0
 });
 
 saveLocal();
-
 render();
 }
 
-function deleteAsset(type,index){
+function updateTotal(){
 
-state[type].splice(index,1);
+let total = 0;
 
-saveLocal();
+state.bank.forEach(i=>total += Number(i.amount));
+state.stock.forEach(i=>total += Number(i.amount));
+state.crypto.forEach(i=>total += Number(i.amount * usdtPrice));
 
-render();
-}
-
-function updateField(type,index,key,value){
-
-state[type][index][key] = value;
-
-saveLocal();
+document.getElementById("totalAssets").innerText =
+formatYen(Math.round(total));
 
 }
 
-function renderPie(total){
+let chart;
 
-const bank =
-state.bank.reduce(
-(a,b)=>a+Number(b.amount||0),
-0
-);
+function updateChart(){
 
-const stock =
-state.stock.reduce(
-(a,b)=>a+Number(b.amount||0),
-0
-);
+const bank = state.bank.reduce((a,b)=>a+Number(b.amount),0);
 
-const crypto =
-state.crypto.reduce(
-(a,b)=>a+(Number(b.amount||0)*usdtRate),
-0
-);
+const stock = state.stock.reduce((a,b)=>a+Number(b.amount),0);
 
-const bankP = total
-? (bank/total)*100
-: 0;
+const crypto = state.crypto.reduce((a,b)=>
+a + Number(b.amount * usdtPrice),0);
 
-const stockP = total
-? (stock/total)*100
-: 0;
+const ctx = document.getElementById("assetChart");
 
-const cryptoP = total
-? (crypto/total)*100
-: 0;
-
-document.getElementById("bankPercent")
-.innerText = `${bankP.toFixed(1)}%`;
-
-document.getElementById("stockPercent")
-.innerText = `${stockP.toFixed(1)}%`;
-
-document.getElementById("cryptoPercent")
-.innerText = `${cryptoP.toFixed(1)}%`;
-
-const pie =
-document.getElementById("pieChart");
-
-pie.style.background = `
-conic-gradient(
-#d4af37 0% ${bankP}%,
-#3b82f6 ${bankP}% ${bankP+stockP}%,
-#8b5cf6 ${bankP+stockP}% 100%
-)
-`;
+if(chart){
+chart.destroy();
 }
 
-function unlock(){
-
-const input =
-document.getElementById("pinInput").value;
-
-let pin =
-localStorage.getItem("appPin");
-
-if(!pin){
-
-localStorage.setItem("appPin",input);
-
-document.getElementById("pinLock")
-.style.display='none';
-
-return;
-}
-
-if(input === pin){
-
-document.getElementById("pinLock")
-.style.display='none';
-
-}else{
-
-alert("PIN ERROR");
-
+chart = new Chart(ctx,{
+type:"doughnut",
+data:{
+labels:["Bank","Stock","Crypto"],
+datasets:[{
+data:[bank,stock,crypto],
+backgroundColor:[
+"#d4af37",
+"#888",
+"#333"
+],
+borderWidth:0
+}]
+},
+options:{
+plugins:{
+legend:{
+labels:{
+color:"#999"
 }
 }
+}
+}
+});
 
-fetchRate();
+}
+
+fetchUSDTPrice();
 
 render();
 
-setInterval(fetchRate,300000);
+setInterval(fetchUSDTPrice,300000);
 
-if('serviceWorker' in navigator){
-
-navigator.serviceWorker.register(
-'./service-worker.js'
-);
-
+if("serviceWorker" in navigator){
+navigator.serviceWorker.register("./service-worker.js");
 }
 
 </script>
