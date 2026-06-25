@@ -1,484 +1,1038 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Asset Dashboard</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AI秘書</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Asset Dashboard" />
-<link rel="apple-touch-icon" href="icon-192.png">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<link rel="icon" href="icons/icon-512.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-512.png">
+<meta name="theme-color" content="#3B3A8F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AI秘書">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --surface2: #F0EEE9;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.14);
+    --text: #1A1916;
+    --muted: #8A8880;
+    --accent: #3B3A8F;
+    --accent-light: #EEEDFE;
+    --accent-text: #26215C;
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --yellow: #BA7517;
+    --yellow-light: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --font: 'Inter', -apple-system, 'Hiragino Sans', sans-serif;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  }
 
-html, body {
-  background: #000;
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  overflow-x: hidden;
-}
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111110;
+      --surface: #1C1C1A;
+      --surface2: #252523;
+      --border: rgba(255,255,255,0.07);
+      --border-strong: rgba(255,255,255,0.12);
+      --text: #EDECEA;
+      --muted: #706E69;
+      --accent: #7F77DD;
+      --accent-light: #26215C;
+      --accent-text: #CECBF6;
+      --green: #1D9E75;
+      --green-light: #04342C;
+      --yellow: #EF9F27;
+      --yellow-light: #412402;
+      --red: #E24B4A;
+      --red-light: #501313;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+  }
 
-body {
-  padding:
-    calc(env(safe-area-inset-top) + 20px)
-    20px
-    calc(env(safe-area-inset-bottom) + 40px);
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-.container {
-  max-width: 520px;
-  margin: 0 auto;
-  animation: fadeIn 0.6s ease;
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    padding-bottom: 100px;
+  }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: calc(env(safe-area-inset-top, 0px) + 26px) 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-inner {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:.4; transform:scale(.75); }
+  }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .time-stack { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
+  .time-badge { font-size: 13px; font-weight: 600; color: var(--text); }
+  .date-badge { font-size: 11px; font-weight: 500; color: var(--muted); }
+  .greeting-tag {
+    font-size: 12px; color: var(--muted);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 3px 10px;
+  }
 
-/* ── Header ── */
-.header {
-  margin-bottom: 28px;
-}
+  main { max-width: 640px; margin: 0 auto; padding: 20px 16px; }
 
-.logo {
-  font-size: 40px;
-  font-weight: 700;
-  color: #d4af37;
-  margin-bottom: 8px;
-  text-shadow: 0 0 20px rgba(212,175,55,0.35);
-}
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .input-card textarea {
+    width: 100%; background: transparent; border: none;
+    color: var(--text); font-family: var(--font);
+    font-size: 15px; line-height: 1.65; resize: none; min-height: 90px;
+    padding: 16px 16px 10px;
+  }
+  .input-card textarea:focus { outline: none; }
+  .input-card textarea::placeholder { color: var(--muted); }
 
-.sub {
-  font-size: 12px;
-  letter-spacing: 4px;
-  color: #666;
-}
+  .action-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+    padding: 7px 13px; font-size: 13px; font-family: var(--font);
+    font-weight: 500; cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-add { background: var(--accent); color: #fff; border-color: transparent; }
+  .btn-add:hover { opacity: .9; }
+  .btn-voice { background: var(--surface); color: var(--text); }
+  .btn-voice:hover { background: var(--bg); }
+  .btn-voice.listening {
+    background: var(--red); color: #fff; border-color: transparent;
+    animation: listening-pulse 1.3s ease-in-out infinite;
+  }
+  @keyframes listening-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(163,45,45,.35); }
+    50% { box-shadow: 0 0 0 7px rgba(163,45,45,0); }
+  }
+  .input-card.listening { border-color: var(--red); }
+  .listening-strip {
+    display: none;
+    align-items: center; gap: 8px;
+    padding: 9px 16px 0;
+    font-size: 12px; font-weight: 500; color: var(--red);
+  }
+  .input-card.listening .listening-strip { display: flex; }
+  .listening-bars { display: flex; align-items: center; gap: 2px; height: 12px; }
+  .listening-bars span {
+    width: 2.5px; background: var(--red); border-radius: 2px;
+    animation: bar-bounce 0.9s ease-in-out infinite;
+  }
+  .listening-bars span:nth-child(1) { height: 5px; animation-delay: 0s; }
+  .listening-bars span:nth-child(2) { height: 11px; animation-delay: .15s; }
+  .listening-bars span:nth-child(3) { height: 7px; animation-delay: .3s; }
+  .listening-bars span:nth-child(4) { height: 12px; animation-delay: .45s; }
+  .listening-bars span:nth-child(5) { height: 6px; animation-delay: .6s; }
+  @keyframes bar-bounce {
+    0%,100% { transform: scaleY(.4); }
+    50% { transform: scaleY(1); }
+  }
+  .btn-sort {
+    background: var(--surface); color: var(--accent);
+    border-color: var(--accent); font-weight: 600;
+  }
+  .btn-sort:hover { background: var(--accent-light); }
+  .btn-copy {
+    background: var(--surface); color: var(--text);
+  }
+  .btn-copy:hover { background: var(--bg); }
+  .btn-copy.copied { background: var(--green); color: #fff; border-color: transparent; }
 
-/* ── Total Card ── */
-.total-card {
-  background: linear-gradient(145deg, rgba(22,22,22,0.96), rgba(8,8,8,0.96));
-  border-radius: 30px;
-  padding: 28px;
-  margin-bottom: 26px;
-  border: 1px solid rgba(212,175,55,0.18);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
-  backdrop-filter: blur(20px);
-}
+  /* ── 切り替えタブ ── */
+  .view-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 7px 0;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font);
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--muted);
+    background: transparent;
+    transition: all .15s;
+  }
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
 
-.total-label {
-  font-size: 13px;
-  color: #888;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-}
+  /* ── ジャンル別ビュー ── */
+  #genre-view { display: none; }
+  #genre-view.visible { display: block; }
 
-.total-value {
-  font-size: 42px;
-  font-weight: 700;
-}
+  .genre-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .genre-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .genre-header:hover { background: var(--surface2); }
+  .genre-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .genre-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .genre-count {
+    font-size: 11px; font-weight: 500;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 8px;
+    color: var(--muted);
+  }
+  .genre-chevron {
+    font-size: 12px;
+    color: var(--muted);
+    transition: transform .2s;
+  }
+  .genre-chevron.open { transform: rotate(180deg); }
 
-/* ── Chart ── */
-.chart-wrap {
-  background: #0c0c0c;
-  border-radius: 28px;
-  padding: 20px;
-  margin-bottom: 26px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
+  .genre-items { border-top: 1px solid var(--border); }
+  .genre-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .genre-item:hover { background: var(--surface2); }
+  .genre-item:last-child { border-bottom: none; }
+  .priority-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .dot-p1 { background: var(--red); }
+  .dot-p2 { background: var(--yellow); }
+  .dot-p3 { background: var(--green); }
+  .genre-item-body { flex: 1; min-width: 0; }
+  .genre-item-text { font-size: 14px; line-height: 1.5; color: var(--text); }
+  .genre-item-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .priority-badge {
+    font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0; align-self: flex-start; margin-top: 2px;
+  }
+  .badge-p1 { background: var(--red-light); color: var(--red); }
+  .badge-p2 { background: var(--yellow-light); color: var(--yellow); }
+  .badge-p3 { background: var(--green-light); color: var(--green); }
 
-/* ── Accordion Section ── */
-.section {
-  margin-bottom: 14px;
-  border-radius: 24px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: linear-gradient(145deg, rgba(20,20,20,0.96), rgba(8,8,8,0.96));
-  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-}
+  /* ── Inbox ── */
+  #inbox-view {}
+  .inbox-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 4px 0 10px;
+  }
+  .inbox-label {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+  }
+  .inbox-actions { display: flex; align-items: center; gap: 8px; }
+  .count-pill {
+    font-size: 11px; font-weight: 500; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 2px 9px;
+  }
+  .btn-clear {
+    font-size: 12px; font-weight: 500; color: var(--muted);
+    background: none; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 4px 10px;
+    cursor: pointer; font-family: var(--font);
+  }
+  .btn-clear:hover { color: var(--red); border-color: var(--red); }
 
-/* ── Accordion Header (tap target) ── */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 20px;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.2s;
-}
+  .task-row {
+    position: relative;
+    margin-bottom: 6px;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .swipe-bg {
+    position: absolute;
+    top: 0; bottom: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius);
+  }
+  .swipe-bg .side {
+    flex: 1; height: 100%;
+    display: flex; align-items: center;
+    font-size: 13px; font-weight: 600; color: #fff;
+  }
+  .swipe-bg .side.done-side { background: var(--green); justify-content: flex-start; padding-left: 18px; }
+  .swipe-bg .side.del-side { background: var(--red); justify-content: flex-end; padding-right: 18px; }
+  .task-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px;
+    display: flex; gap: 10px; align-items: flex-start;
+    box-shadow: var(--shadow);
+    position: relative;
+    touch-action: pan-y;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), opacity .2s;
+    cursor: pointer;
+  }
+  .task-card.dragging { transition: none; }
+  .task-card.done { opacity: .4; }
+  .check-box {
+    width: 18px; height: 18px; border: 1.5px solid var(--border-strong);
+    border-radius: 5px; flex-shrink: 0; margin-top: 1px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #fff; transition: all .15s;
+  }
+  .check-box.checked { background: var(--green); border-color: var(--green); }
+  .task-body { flex: 1; min-width: 0; }
+  .task-text { font-size: 14px; line-height: 1.5; color: var(--text); word-break: break-all; }
+  .task-text.done-text { text-decoration: line-through; color: var(--muted); }
+  .task-date { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .task-del {
+    background: none; border: none; color: var(--border-strong);
+    cursor: pointer; font-size: 15px; padding: 0; line-height: 1; flex-shrink: 0;
+  }
+  .task-del:hover { color: var(--red); }
 
-.section-header:active {
-  background: rgba(212,175,55,0.06);
-}
+  .empty {
+    text-align: center; padding: 48px 20px;
+    color: var(--muted); font-size: 13px; line-height: 1.8;
+  }
+  .empty-icon {
+    width: 40px; height: 40px; border: 1.5px solid var(--border-strong);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px; font-size: 18px;
+  }
 
-.section-header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+  #toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(70px);
+    background: var(--text); color: var(--bg);
+    border-radius: 20px; padding: 9px 18px;
+    font-size: 13px; font-weight: 500; font-family: var(--font);
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+    z-index: 100; white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
 
-.section-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #d4af37;
-  letter-spacing: 1px;
-}
-
-.section-total {
-  font-size: 17px;
-  font-weight: 700;
-  color: #fff;
-}
-
-.chevron {
-  font-size: 13px;
-  color: #555;
-  transition: transform 0.3s ease;
-}
-
-.section.open .chevron {
-  transform: rotate(180deg);
-}
-
-/* ── Accordion Body ── */
-.section-body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.section.open .section-body {
-  max-height: 2000px;
-}
-
-.section-body-inner {
-  padding: 0 14px 18px;
-}
-
-/* ── Card ── */
-.card {
-  background: rgba(255,255,255,0.03);
-  border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.name-input {
-  width: 100%;
-  background: #111;
-  border: none;
-  border-radius: 14px;
-  padding: 12px;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  outline: none;
-  margin-bottom: 12px;
-}
-
-.input {
-  width: 100%;
-  background: #111;
-  border: none;
-  border-radius: 14px;
-  padding: 14px;
-  color: #fff;
-  font-size: 16px;
-  outline: none;
-}
-
-.input:focus,
-.name-input:focus {
-  border: 1px solid rgba(212,175,55,0.5);
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.value {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.crypto-main {
-  font-size: 24px;
-  font-weight: 700;
-  color: #d4af37;
-}
-
-.crypto-jpy {
-  font-size: 14px;
-  color: #888;
-  margin-top: 4px;
-}
-
-/* ── Add Button ── */
-.add-btn {
-  width: 100%;
-  border: none;
-  border-radius: 18px;
-  padding: 16px;
-  margin-top: 6px;
-  font-size: 16px;
-  font-weight: 700;
-  background: rgba(212,175,55,0.12);
-  color: #d4af37;
-  border: 1px solid rgba(212,175,55,0.25);
-  cursor: pointer;
-  transition: 0.2s;
-  letter-spacing: 1px;
-}
-
-.add-btn:active {
-  transform: scale(0.98);
-  background: rgba(212,175,55,0.2);
-}
-
-.footer-space { height: 60px; }
-
+  /* ── 編集モーダル ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: flex-end; justify-content: center;
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  @media (min-width: 560px) {
+    .modal-overlay { align-items: center; }
+  }
+  .modal-sheet {
+    background: var(--surface);
+    border-radius: 18px 18px 0 0;
+    width: 100%; max-width: 480px;
+    padding: 18px 18px calc(20px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 24px rgba(0,0,0,.15);
+    transform: translateY(100%);
+    transition: transform .25s cubic-bezier(.2,.8,.2,1);
+    max-height: 86vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal-sheet { transform: translateY(0); }
+  @media (min-width: 560px) {
+    .modal-sheet { border-radius: 18px; transform: translateY(12px) scale(.97); }
+    .modal-overlay.open .modal-sheet { transform: translateY(0) scale(1); }
+  }
+  .modal-handle {
+    width: 36px; height: 4px; background: var(--border-strong);
+    border-radius: 4px; margin: 0 auto 16px;
+  }
+  .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-label {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    letter-spacing: .5px; text-transform: uppercase;
+    margin-bottom: 7px; display: block;
+  }
+  .modal-textarea {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm); color: var(--text); font-family: var(--font);
+    font-size: 14px; line-height: 1.6; padding: 10px 12px; resize: none; min-height: 64px;
+  }
+  .modal-textarea:focus { outline: none; border-color: var(--accent); }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 12.5px; font-weight: 500; font-family: var(--font);
+    border: 1px solid var(--border-strong); border-radius: 20px;
+    padding: 6px 12px; cursor: pointer; background: var(--surface2); color: var(--text);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .chip.selected { background: var(--accent); color: #fff; border-color: transparent; }
+  .chip.p1.selected { background: var(--red); }
+  .chip.p2.selected { background: var(--yellow); }
+  .chip.p3.selected { background: var(--green); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .modal-btn {
+    flex: 1; padding: 11px 0; border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 600; font-family: var(--font);
+    border: 1px solid var(--border-strong); cursor: pointer; background: var(--surface);
+    color: var(--text);
+  }
+  .modal-btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  .modal-btn.danger { background: none; color: var(--red); border-color: var(--red); flex: 0 0 auto; padding: 11px 16px; }
 </style>
 </head>
 <body>
 
-<div class="container">
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      AI秘書
+    </div>
+    <div class="header-right">
+      <span class="greeting-tag" id="greeting">読み込み中</span>
+      <div class="time-stack">
+        <span class="time-badge" id="clock">--:--</span>
+        <span class="date-badge" id="dateLabel">----/--/--</span>
+      </div>
+    </div>
+  </div>
+</header>
 
-  <div class="header">
-    <div class="logo">¥</div>
-    <div class="sub">ASSET DASHBOARD</div>
+<main>
+  <div class="input-card" id="inputCard">
+    <div class="listening-strip">
+      <div class="listening-bars"><span></span><span></span><span></span><span></span><span></span></div>
+      聞いています…
+    </div>
+    <textarea id="memo" rows="4" placeholder="気になること、やること、なんでも…&#10;例：確定申告、ジム予約、車検、新しい本読む"></textarea>
+    <div class="action-bar">
+      <button class="btn btn-add" onclick="saveMemo()">＋ 追加</button>
+      <button class="btn btn-voice" id="voiceBtn" onclick="voice()">🎤 音声</button>
+      <button class="btn btn-copy" id="copyBtn" onclick="copyAsText()">📋 まとめてテキスト</button>
+      <button class="btn btn-sort" onclick="sortAndSwitch()">⚡ 整理する</button>
+    </div>
   </div>
 
-  <div class="total-card">
-    <div class="total-label">TOTAL ASSETS</div>
-    <div class="total-value" id="totalAssets">¥0</div>
+  <div class="view-tabs">
+    <button class="tab active" id="tab-inbox" onclick="switchTab('inbox')">📥 Inbox</button>
+    <button class="tab" id="tab-genre" onclick="switchTab('genre')">🗂 ジャンル別</button>
   </div>
 
-  <div class="chart-wrap">
-    <canvas id="assetChart"></canvas>
+  <!-- Inbox ビュー -->
+  <div id="inbox-view">
+    <div class="inbox-header">
+      <span class="inbox-label">すべてのタスク</span>
+      <div class="inbox-actions">
+        <span class="count-pill" id="inbox-count">0件</span>
+        <button class="btn-clear" onclick="clearDone()">完了を削除</button>
+      </div>
+    </div>
+    <div id="inbox"></div>
   </div>
 
-  <div id="app"></div>
+  <!-- ジャンル別ビュー -->
+  <div id="genre-view">
+    <div id="genre-body"></div>
+  </div>
+</main>
 
-  <div class="footer-space"></div>
+<div id="toast"></div>
 
+<div class="modal-overlay" id="editModal" onclick="if(event.target===this) closeEdit()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">タスクを編集</div>
+    <div class="modal-field">
+      <label class="modal-label">内容</label>
+      <textarea class="modal-textarea" id="editText" rows="3"></textarea>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">ジャンル</label>
+      <div class="chip-row" id="editGenreChips"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">優先度</label>
+      <div class="chip-row" id="editPriorityChips"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn danger" onclick="deleteFromEdit()">削除</button>
+      <button class="modal-btn" onclick="closeEdit()">キャンセル</button>
+      <button class="modal-btn primary" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
 </div>
 
 <script>
+let tasks = JSON.parse(localStorage.getItem("tasks_v6") || "[]");
+let currentTab = "inbox";
 
-const STORAGE_KEY = "asset-dashboard-data";
+updateClock();
+setInterval(updateClock, 30000);
+render();
 
-let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-  bank: [],
-  stock: [],
-  crypto: []
-};
-
-// アコーディオン開閉状態（セッション中保持）
-let openSections = { bank: false, stock: false, crypto: false };
-
-let usdtPrice = 150;
-
-async function fetchUSDTPrice() {
-  try {
-    const res = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=jpy"
-    );
-    const data = await res.json();
-    usdtPrice = data.tether.jpy || 150;
-    render();
-  } catch(e) {
-    console.log(e);
-  }
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours();
+  document.getElementById("clock").textContent =
+    now.toLocaleTimeString("ja-JP", {hour:"2-digit", minute:"2-digit"});
+  document.getElementById("dateLabel").textContent =
+    now.toLocaleDateString("ja-JP", {month:"short", day:"numeric", weekday:"short"});
+  document.getElementById("greeting").textContent =
+    h < 5 ? "夜更かし中" : h < 10 ? "おはよう" :
+    h < 14 ? "午前中" : h < 17 ? "午後" : h < 20 ? "夕方" : "夜";
 }
 
-function saveLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  updateTotal();
-  updateChart();
-  updateSectionTotals();
-}
+function persist() { localStorage.setItem("tasks_v6", JSON.stringify(tasks)); }
 
-function formatYen(num) {
-  return "¥" + Number(num).toLocaleString("ja-JP");
-}
-
-function getSectionTotal(key, isCrypto) {
-  return state[key].reduce((a, b) => {
-    return a + Number(isCrypto ? b.amount * usdtPrice : b.amount);
-  }, 0);
-}
-
-function createSection(title, key, isCrypto = false) {
-  const total = getSectionTotal(key, isCrypto);
-  const isOpen = openSections[key];
-
-  const cards = state[key].map((item, index) => {
-    const jpy = isCrypto ? Math.round(item.amount * usdtPrice) : item.amount;
-    return `
-      <div class="card">
-        <input
-          class="name-input"
-          type="text"
-          placeholder="名称入力"
-          value="${item.name}"
-          oninput="updateName('${key}',${index},this.value)"
-        >
-        <div class="row">
-          <div>
-            ${isCrypto ? `
-              <div class="crypto-main">${item.amount} USDT</div>
-              <div class="crypto-jpy">≈ ${formatYen(jpy)}</div>
-            ` : `
-              <div class="value">${formatYen(item.amount)}</div>
-            `}
-          </div>
-        </div>
-        <input
-          class="input"
-          type="number"
-          inputmode="decimal"
-          placeholder="金額入力"
-          value="${item.amount || ''}"
-          oninput="updateField('${key}',${index},this.value)"
-        >
-      </div>
-    `;
-  }).join("");
-
-  return `
-    <div class="section${isOpen ? ' open' : ''}" id="section-${key}">
-      <div class="section-header" onclick="toggleSection('${key}')">
-        <div class="section-header-left">
-          <span class="section-title">${title}</span>
-          <span class="section-total" id="section-total-${key}">${formatYen(Math.round(total))}</span>
-        </div>
-        <span class="chevron">▼</span>
-      </div>
-      <div class="section-body">
-        <div class="section-body-inner">
-          ${cards}
-          <button class="add-btn" onclick="addAsset('${key}')">＋ 追加</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function toggleSection(key) {
-  openSections[key] = !openSections[key];
-  const el = document.getElementById(`section-${key}`);
-  if (el) {
-    el.classList.toggle('open', openSections[key]);
-  }
-}
-
-function updateSectionTotals() {
-  const keys = [
-    { key: 'bank',   crypto: false },
-    { key: 'stock',  crypto: false },
-    { key: 'crypto', crypto: true  }
-  ];
-  keys.forEach(({ key, crypto }) => {
-    const el = document.getElementById(`section-total-${key}`);
-    if (el) {
-      const total = getSectionTotal(key, crypto);
-      el.textContent = formatYen(Math.round(total));
-    }
+function saveMemo() {
+  const v = document.getElementById("memo").value.trim();
+  if (!v) return;
+  v.split(/[,、。\n]+/).map(s => s.trim()).filter(Boolean).forEach(text => {
+    tasks.unshift({ id: Date.now() + Math.random(), text, done: false, date: new Date().toLocaleString("ja-JP"), genreOverride: null, priorityOverride: null });
   });
+  document.getElementById("memo").value = "";
+  persist(); render();
+  toast("追加しました");
 }
 
-function updateName(type, index, value) {
-  state[type][index].name = value;
-  saveLocal();
+function toggleDone(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.done = !t.done; persist(); render(); }
 }
 
-function updateField(type, index, value) {
-  state[type][index].amount = Number(value);
-  saveLocal();
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  persist(); render();
 }
 
-function addAsset(type) {
-  state[type].push({ name: "", amount: 0 });
-  saveLocal();
-  render();
-  // 追加後も開いた状態を維持
-  openSections[type] = true;
-  const el = document.getElementById(`section-${type}`);
-  if (el) el.classList.add('open');
+function clearDone() {
+  tasks = tasks.filter(t => !t.done);
+  persist(); render();
+  toast("完了タスクを削除しました");
 }
 
-function updateTotal() {
-  let total = 0;
-  state.bank.forEach(i   => { total += Number(i.amount); });
-  state.stock.forEach(i  => { total += Number(i.amount); });
-  state.crypto.forEach(i => { total += Number(i.amount * usdtPrice); });
-  document.getElementById("totalAssets").innerText = formatYen(Math.round(total));
-}
-
-let chart;
-
-function updateChart() {
-  const bank   = state.bank.reduce((a,b)  => a + Number(b.amount), 0);
-  const stock  = state.stock.reduce((a,b) => a + Number(b.amount), 0);
-  const crypto = state.crypto.reduce((a,b)=> a + Number(b.amount * usdtPrice), 0);
-
-  const ctx = document.getElementById("assetChart");
-  if (chart) chart.destroy();
-
-  chart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: ["Bank", "Stock", "Crypto"],
-      datasets: [{
-        data: [bank, stock, crypto],
-        backgroundColor: ["#d4af37", "#777", "#2a2a2a"],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      plugins: {
-        legend: {
-          labels: { color: "#999" }
-        }
-      }
-    }
-  });
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("inbox-view").style.display = tab === "inbox" ? "block" : "none";
+  const gv = document.getElementById("genre-view");
+  gv.style.display = tab === "genre" ? "block" : "none";
+  document.getElementById("tab-inbox").classList.toggle("active", tab === "inbox");
+  document.getElementById("tab-genre").classList.toggle("active", tab === "genre");
+  if (tab === "genre") renderGenre();
 }
 
 function render() {
-  document.getElementById("app").innerHTML =
-    createSection("BANK",   "bank")   +
-    createSection("STOCK",  "stock")  +
-    createSection("CRYPTO", "crypto", true);
-
-  updateTotal();
-  updateChart();
+  renderInbox();
+  if (currentTab === "genre") renderGenre();
 }
 
-fetchUSDTPrice();
-render();
-setInterval(fetchUSDTPrice, 300000);
+function renderInbox() {
+  const box = document.getElementById("inbox");
+  const active = tasks.filter(t => !t.done);
+  const done   = tasks.filter(t => t.done);
+  const ordered = [...active, ...done];
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./service-worker.js");
+  if (ordered.length === 0) {
+    box.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>タスクがありません<br>上のフォームから追加してみてください</div>`;
+  } else {
+    box.innerHTML = ordered.map(t => `
+      <div class="task-row" id="row-${t.id}">
+        <div class="swipe-bg">
+          <div class="side done-side">${t.done ? "↺ 未完了に戻す" : "✓ 完了"}</div>
+          <div class="side del-side">削除 ×</div>
+        </div>
+        <div class="task-card${t.done ? " done" : ""}" id="card-${t.id}"
+             onpointerdown="swipeStart(event, ${t.id})"
+             onclick="cardClick(event, ${t.id})">
+          <div class="check-box${t.done ? " checked" : ""}" onclick="event.stopPropagation(); toggleDone(${t.id})">${t.done ? "✓" : ""}</div>
+          <div class="task-body">
+            <div class="task-text${t.done ? " done-text" : ""}">${esc(t.text)}</div>
+            <div class="task-date">${t.date}</div>
+          </div>
+          <button class="task-del" onclick="event.stopPropagation(); deleteTask(${t.id})">×</button>
+        </div>
+      </div>
+    `).join("");
+  }
+  document.getElementById("inbox-count").textContent = `${tasks.filter(t=>!t.done).length}件`;
 }
 
+function esc(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ── スワイプ操作 ──
+const SWIPE_THRESHOLD = 70;
+let swipeState = null;
+
+function swipeStart(e, id) {
+  const card = document.getElementById(`card-${id}`);
+  if (!card) return;
+  swipeState = { id, startX: e.clientX, startY: e.clientY, dx: 0, dragging: false, moved: false };
+  card.classList.add("dragging");
+  card.setPointerCapture && e.pointerId != null && card.setPointerCapture(e.pointerId);
+  card.onpointermove = ev => swipeMove(ev, id);
+  card.onpointerup = ev => swipeEnd(ev, id);
+  card.onpointercancel = ev => swipeEnd(ev, id);
+}
+
+function swipeMove(e, id) {
+  if (!swipeState || swipeState.id !== id) return;
+  const card = document.getElementById(`card-${id}`);
+  if (!card) return;
+  const dx = e.clientX - swipeState.startX;
+  const dy = e.clientY - swipeState.startY;
+  if (!swipeState.dragging) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+    if (Math.abs(dy) > Math.abs(dx)) { swipeState.dragging = false; return; }
+    swipeState.dragging = true;
+  }
+  swipeState.moved = true;
+  swipeState.dx = dx;
+  card.style.transform = `translateX(${dx}px)`;
+}
+
+function swipeEnd(e, id) {
+  if (!swipeState || swipeState.id !== id) { swipeState = null; return; }
+  const card = document.getElementById(`card-${id}`);
+  const dx = swipeState.dx;
+  const wasDragging = swipeState.dragging;
+  card.onpointermove = null; card.onpointerup = null; card.onpointercancel = null;
+  card.classList.remove("dragging");
+
+  if (wasDragging && dx <= -SWIPE_THRESHOLD) {
+    card.style.transform = `translateX(-100%)`;
+    card.style.opacity = "0";
+    setTimeout(() => deleteTask(id), 180);
+  } else if (wasDragging && dx >= SWIPE_THRESHOLD) {
+    card.style.transform = `translateX(0)`;
+    toggleDone(id);
+  } else {
+    card.style.transform = `translateX(0)`;
+  }
+  // クリック判定用に少し遅らせて moved フラグを解放
+  const moved = swipeState.moved;
+  setTimeout(() => { if (swipeState && swipeState.id === id) swipeState = null; }, moved ? 50 : 0);
+  if (!moved) swipeState = null;
+}
+
+function cardClick(e, id) {
+  if (swipeState && swipeState.moved) return;
+  openEdit(id);
+}
+
+// ── ジャンル定義 ──
+const GENRES = [
+  {
+    key: "work", label: "仕事", icon: "💼",
+    bg: "#EEEDFE", darkBg: "#26215C",
+    patterns: [/仕事|業務|提出|返信|メール|会議|資料|クライアント|請求書|打ち合わせ|ミーティング|報告|プロジェクト|締め切|納品/],
+  },
+  {
+    key: "money", label: "お金", icon: "💰",
+    bg: "#E1F5EE", darkBg: "#04342C",
+    patterns: [/申告|確定申告|税金|納税|支払|振込|請求|口座|銀行|保険|投資|節税|経費|収入|資産|年金|積立|ふるさと納税/],
+  },
+  {
+    key: "health", label: "健康・習慣", icon: "🏃",
+    bg: "#FCEBEB", darkBg: "#501313",
+    patterns: [/ジム|運動|筋トレ|トレーニング|ウォーキング|ランニング|ヨガ|ストレッチ|病院|通院|薬|クスリ|健診|健康診断|睡眠|食事|ダイエット|体重/],
+  },
+  {
+    key: "life", label: "生活", icon: "🏠",
+    bg: "#FAEEDA", darkBg: "#412402",
+    patterns: [/掃除|片付|整理|洗濯|家事|ゴミ|買い物|買|スーパー|コンビニ|修理|メンテ|点検|車検|交換|免許|引っ越し|家具|電球/],
+  },
+  {
+    key: "learn", label: "自己投資", icon: "📚",
+    bg: "#E6F1FB", darkBg: "#042C53",
+    patterns: [/本|読書|勉強|学習|資格|セミナー|講座|スキル|語学|英語|プログラミング|コース/],
+  },
+  {
+    key: "people", label: "人間関係", icon: "👥",
+    bg: "#FBEAF0", darkBg: "#4B1528",
+    patterns: [/友達|友人|家族|親|連絡|食事|ランチ|飲み|飲み会|会う|遊ぶ|誕生日|プレゼント|お礼|お見舞い/],
+  },
+  {
+    key: "other", label: "その他", icon: "📦",
+    bg: "#F1EFE8", darkBg: "#2C2C2A",
+    patterns: [/.*/],
+  },
+];
+
+// ── 優先度定義 ──
+const PRIORITY = {
+  p1: {
+    patterns: [/申告|納税|税金|締め切|期限|締切|〆切|今日|急ぎ|至急|緊急|支払|振込|請求|提出|返信|連絡|確認|病院|薬|車検|更新|免許/],
+    label: "今日", cls: "badge-p1", dot: "dot-p1",
+    reason: t => match(t, [[/申告/,"期限あり"],[/支払|振込/,"金銭的期限あり"],[/病院/,"健康最優先"],[/返信|連絡/,"相手待ち"],[/提出/,"書類期限あり"],[/.*/, "緊急度高い"]]),
+  },
+  p2: {
+    patterns: [/買|購入|掃除|片付|洗濯|家事|運動|ジム|筋トレ|美容|散髪|修理|メンテ|友達|食事|飲み会/],
+    label: "今週", cls: "badge-p2", dot: "dot-p2",
+    reason: t => match(t, [[/買|購入/,"在庫切れ前に"],[/掃除|片付/,"定期的にやると楽"],[/運動|ジム/,"習慣化が大事"],[/美容|散髪/,"余裕があるときに"],[/修理/,"放置で悪化の可能性"],[/.*/, "今週中に対応推奨"]]),
+  },
+  p3: {
+    patterns: [/.*/],
+    label: "後回し", cls: "badge-p3", dot: "dot-p3",
+    reason: t => match(t, [[/本|読書|勉強/,"自己投資、急がなくてOK"],[/旅行|計画/,"じっくり計画を"],[/.*/, "今すぐでなくてOK"]]),
+  },
+};
+
+function match(text, map) {
+  for (const [p, v] of map) if (p.test(text)) return v;
+  return "";
+}
+
+function classifyGenre(text) {
+  for (const g of GENRES) {
+    if (g.key === "other") continue;
+    if (g.patterns.some(p => p.test(text))) return g.key;
+  }
+  return "other";
+}
+
+function classifyPriority(text) {
+  for (const [k, r] of Object.entries(PRIORITY)) {
+    if (k === "p3") continue;
+    if (r.patterns.some(p => p.test(text))) return k;
+  }
+  return "p3";
+}
+
+// ── ジャンル別レンダリング ──
+const openGenres = {};
+
+function renderGenre() {
+  const active = tasks.filter(t => !t.done);
+  const body = document.getElementById("genre-body");
+
+  if (active.length === 0) {
+    body.innerHTML = `<div class="empty"><div class="empty-icon">🗂</div>タスクがありません<br>Inboxから追加してください</div>`;
+    return;
+  }
+
+  // ジャンルごとに仕分け
+  const grouped = {};
+  GENRES.forEach(g => grouped[g.key] = []);
+  active.forEach(t => {
+    const gk = t.genreOverride || classifyGenre(t.text);
+    const pk = t.priorityOverride || classifyPriority(t.text);
+    grouped[gk].push({ ...t, pk });
+  });
+
+  // 優先度順にソート（p1→p2→p3）
+  const order = { p1: 0, p2: 1, p3: 2 };
+  Object.values(grouped).forEach(arr => arr.sort((a,b) => order[a.pk] - order[b.pk]));
+
+  body.innerHTML = GENRES
+    .filter(g => grouped[g.key].length > 0)
+    .map(g => {
+      const items = grouped[g.key];
+      const isOpen = openGenres[g.key] !== false; // デフォルト開く
+      const itemsHtml = items.map(t => {
+        const pr = PRIORITY[t.pk];
+        const reason = t.priorityOverride ? "手動設定" : pr.reason(t.text);
+        return `<div class="genre-item" onclick="openEdit(${t.id})">
+          <div class="priority-dot ${pr.dot}"></div>
+          <div class="genre-item-body">
+            <div class="genre-item-text">${esc(t.text)}</div>
+            ${reason ? `<div class="genre-item-meta">${reason}</div>` : ""}
+          </div>
+          <span class="priority-badge ${pr.cls}">${pr.label}</span>
+        </div>`;
+      }).join("");
+
+      return `<div class="genre-block">
+        <div class="genre-header" onclick="toggleGenre('${g.key}')">
+          <div class="genre-title">
+            <div class="genre-icon" style="background:${g.bg}">${g.icon}</div>
+            ${g.label}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="genre-count">${items.length}件</span>
+            <span class="genre-chevron${isOpen ? " open" : ""}" id="chevron-${g.key}">▾</span>
+          </div>
+        </div>
+        <div class="genre-items" id="items-${g.key}" style="display:${isOpen ? "block" : "none"}">
+          ${itemsHtml}
+        </div>
+      </div>`;
+    }).join("");
+}
+
+function toggleGenre(key) {
+  openGenres[key] = openGenres[key] === false ? true : false;
+  const items = document.getElementById(`items-${key}`);
+  const chevron = document.getElementById(`chevron-${key}`);
+  if (items) items.style.display = openGenres[key] === false ? "none" : "block";
+  if (chevron) chevron.classList.toggle("open", openGenres[key] !== false);
+}
+
+function sortAndSwitch() {
+  const active = tasks.filter(t => !t.done);
+  if (active.length === 0) { toast("タスクがありません"); return; }
+  switchTab("genre");
+  toast("ジャンル別に整理しました");
+}
+
+function buildSummaryText() {
+  const active = tasks.filter(t => !t.done);
+  const grouped = {};
+  GENRES.forEach(g => grouped[g.key] = []);
+  active.forEach(t => {
+    const gk = t.genreOverride || classifyGenre(t.text);
+    const pk = t.priorityOverride || classifyPriority(t.text);
+    grouped[gk].push({ ...t, pk });
+  });
+  const order = { p1: 0, p2: 1, p3: 2 };
+  Object.values(grouped).forEach(arr => arr.sort((a,b) => order[a.pk] - order[b.pk]));
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("ja-JP", {year:"numeric", month:"long", day:"numeric", weekday:"short"});
+
+  const lines = [];
+  lines.push(`📋 タスク一覧（${dateStr}）`);
+  lines.push("");
+
+  GENRES.filter(g => grouped[g.key].length > 0).forEach(g => {
+    lines.push(`${g.icon} ${g.label}`);
+    grouped[g.key].forEach(t => {
+      const pr = PRIORITY[t.pk];
+      lines.push(`・[${pr.label}] ${t.text}`);
+    });
+    lines.push("");
+  });
+
+  if (active.length === 0) {
+    lines.push("（タスクはありません）");
+  }
+
+  return lines.join("\n").trim();
+}
+
+function copyAsText() {
+  const active = tasks.filter(t => !t.done);
+  if (active.length === 0) { toast("タスクがありません"); return; }
+
+  const text = buildSummaryText();
+  const btn = document.getElementById("copyBtn");
+
+  const showCopied = () => {
+    const original = "📋 まとめてテキスト";
+    btn.textContent = "✓ コピーしました";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = original; btn.classList.remove("copied"); }, 1800);
+    toast("テキストをコピーしました");
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(showCopied).catch(() => fallbackCopy(text, showCopied));
+  } else {
+    fallbackCopy(text, showCopied);
+  }
+}
+
+function fallbackCopy(text, onDone) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+    onDone();
+  } catch (e) {
+    toast("コピーに失敗しました");
+  }
+  document.body.removeChild(ta);
+}
+
+function voice() {
+  if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+    toast("このブラウザは音声入力非対応です"); return;
+  }
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const r = new R();
+  r.lang = "ja-JP";
+  const btn = document.getElementById("voiceBtn");
+  const card = document.getElementById("inputCard");
+
+  const stopListening = () => {
+    btn.classList.remove("listening");
+    btn.textContent = "🎤 音声";
+    card.classList.remove("listening");
+  };
+
+  r.onstart = () => {
+    btn.classList.add("listening");
+    btn.textContent = "● 録音中";
+    card.classList.add("listening");
+  };
+  r.onresult = e => { document.getElementById("memo").value = e.results[0][0].transcript; };
+  r.onerror = () => { toast("音声入力エラー"); stopListening(); };
+  r.onend = stopListening;
+  r.start();
+}
+
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+// ── 編集モーダル ──
+let editingId = null;
+let editGenre = null;
+let editPriority = null;
+
+function openEdit(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t) return;
+  editingId = id;
+  editGenre = t.genreOverride || classifyGenre(t.text);
+  editPriority = t.priorityOverride || classifyPriority(t.text);
+
+  document.getElementById("editText").value = t.text;
+
+  document.getElementById("editGenreChips").innerHTML = GENRES.map(g => `
+    <button type="button" class="chip${g.key === editGenre ? " selected" : ""}" data-genre="${g.key}" onclick="pickGenre('${g.key}')">${g.icon} ${g.label}</button>
+  `).join("");
+
+  document.getElementById("editPriorityChips").innerHTML = Object.entries(PRIORITY).map(([k, p]) => `
+    <button type="button" class="chip ${k}${k === editPriority ? " selected" : ""}" data-priority="${k}" onclick="pickPriority('${k}')">${p.label}</button>
+  `).join("");
+
+  document.getElementById("editModal").classList.add("open");
+}
+
+function pickGenre(key) {
+  editGenre = key;
+  document.querySelectorAll("#editGenreChips .chip").forEach(c => c.classList.toggle("selected", c.dataset.genre === key));
+}
+
+function pickPriority(key) {
+  editPriority = key;
+  document.querySelectorAll("#editPriorityChips .chip").forEach(c => c.classList.toggle("selected", c.dataset.priority === key));
+}
+
+function closeEdit() {
+  document.getElementById("editModal").classList.remove("open");
+  editingId = null;
+}
+
+function saveEdit() {
+  const t = tasks.find(t => t.id === editingId);
+  if (!t) { closeEdit(); return; }
+  const newText = document.getElementById("editText").value.trim();
+  if (!newText) { toast("内容を入力してください"); return; }
+  t.text = newText;
+  t.genreOverride = editGenre;
+  t.priorityOverride = editPriority;
+  persist(); render();
+  closeEdit();
+  toast("保存しました");
+}
+
+function deleteFromEdit() {
+  if (editingId == null) return;
+  const id = editingId;
+  closeEdit();
+  deleteTask(id);
+}
+
+// 初期表示
+document.getElementById("inbox-view").style.display = "block";
+document.getElementById("genre-view").style.display = "none";
 </script>
 </body>
 </html>
