@@ -1,4 +1,4 @@
-const CACHE_NAME = "asset-dashboard-v5";
+const CACHE_NAME = "asset-dashboard-v6";
 
 const urlsToCache = [
   "./",
