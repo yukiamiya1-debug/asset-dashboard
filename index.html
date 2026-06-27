@@ -421,7 +421,17 @@ html, body {
     <div class="total-card">
       <div class="total-label">CRYPTO TOTAL</div>
       <div class="total-value" id="crypto-total">¥0</div>
-      <div class="total-sub" id="crypto-rate">レート取得中…</div>
+      <div class="total-sub" style="margin-top:12px;display:flex;align-items:center;gap:8px">
+        <span style="opacity:0.75;font-size:12px">1 USDT =</span>
+        <span style="opacity:0.75;font-size:12px">¥</span>
+        <input id="usdt-rate-input" type="number" inputmode="decimal"
+          style="background:rgba(255,255,255,0.2);border:none;border-bottom:1px solid rgba(255,255,255,0.5);
+                 color:#fff;font-size:16px;font-weight:700;width:80px;outline:none;padding:2px 4px;
+                 font-family:inherit;border-radius:0;"
+          oninput="updateUsdtRate(this.value)"
+          onblur="saveUsdtRate(this.value)">
+        <span style="opacity:0.75;font-size:12px">円</span>
+      </div>
     </div>
     <div id="crypto-list"></div>
   </div>
@@ -480,7 +490,7 @@ html, body {
 const STORAGE_KEY = "asset-dashboard-v2";
 let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { bank:[], stock:[], crypto:[], sub:[] };
 
-let prices = { BTC:10000000, USDT:150 };
+let usdtRate = parseInt(localStorage.getItem("usdt-rate") || "150");
 
 const SUB_COLORS = ["#d4af37","#4a9eff","#ff6b6b","#50fa7b","#bd93f9","#ffb86c","#8be9fd","#ff79c6","#a8e6cf","#ffd3b6"];
 
@@ -521,7 +531,7 @@ function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot
 // ── HOME ──
 function bankTotal()   { return state.bank.reduce((a,b)=>a+(+b.amount||0),0); }
 function stockTotal()  { return state.stock.reduce((a,b)=>a+(+b.amount||0),0); }
-function cryptoTotal() { return state.crypto.reduce((a,b)=>a+(+b.amount||0)*(prices[b.symbol]||150),0); }
+function cryptoTotal() { return state.crypto.reduce((a,b)=>a+(+b.amount||0)*usdtRate,0); }
 function subMonthly()  { return state.sub.reduce((a,b)=>{const m=b.cycle==="year"?(+b.amount/12):(+b.amount||0);return a+m;},0); }
 
 function renderHome() {
@@ -564,10 +574,7 @@ function renderList(type, isCrypto) {
 }
 
 function buildAssetCard(type, item, i, isCrypto) {
-  const jpy = isCrypto ? (+item.amount||0)*(prices[item.symbol]||150) : (+item.amount||0);
-  const symOpts = isCrypto ? Object.keys(CRYPTO_IDS).map(s=>
-    `<option value="${s}"${item.symbol===s?" selected":""}>${s}</option>`
-  ).join("") : "";
+  const jpy = isCrypto ? (+item.amount||0)*usdtRate : (+item.amount||0);
 
   return `<div class="asset-card">
     <div class="asset-card-top">
@@ -577,15 +584,13 @@ function buildAssetCard(type, item, i, isCrypto) {
       <button class="delete-btn" onclick="delAsset('${type}',${i})">×</button>
     </div>
     ${isCrypto ? `
-      <div class="symbol-row">
-        <select class="mini-select" style="flex:0 0 100px" onchange="updateProp('${type}',${i},'symbol',this.value)">${symOpts}</select>
-        <div class="input-row" style="flex:1">
-          <input class="amount-input" type="number" inputmode="decimal" placeholder="0" value="${item.amount||''}"
-            oninput="updateAmount('${type}',${i},this.value)"
-            onblur="saveOnly()">
-        </div>
+      <div class="input-row">
+        <span class="input-prefix">USDT</span>
+        <input class="amount-input" type="number" inputmode="decimal" placeholder="0" value="${item.amount||''}"
+          oninput="updateAmount('${type}',${i},this.value)"
+          onblur="saveOnly()">
       </div>
-      <div class="computed-jpy" id="jpy-${type}-${i}">≈ ${yen(jpy)}（1${item.symbol||'USDT'} = ${yen(prices[item.symbol]||150)}）</div>
+      <div class="computed-jpy" id="jpy-${type}-${i}">≈ ${yen(jpy)}（1USDT = ${yen(usdtRate)}）</div>
     ` : `
       <div class="input-row">
         <span class="input-prefix">¥</span>
@@ -599,14 +604,13 @@ function buildAssetCard(type, item, i, isCrypto) {
 
 // ── CRYPTO page ──
 function renderCrypto() {
-  const rateStr = Object.keys(CRYPTO_IDS).map(s=>`${s} ${yen(prices[s])}`).join("  ·  ");
-  document.getElementById("crypto-rate").textContent = rateStr;
+  document.getElementById("usdt-rate-input").value = usdtRate;
   renderList("crypto", true);
 }
 
 // ── Asset CRUD ──
 function addAsset(type) {
-  state[type].push({ name:"", amount:0, symbol:"USDT" });
+  state[type].push({ name:"", amount:0 });
   save();
 }
 // テキスト入力中はDOMを再構築しない（キーボードが閉じないように）
@@ -635,8 +639,8 @@ function updateTotalDisplay(type) {
     state[type].forEach((item, idx) => {
       const jpyEl = document.getElementById(`jpy-${type}-${idx}`);
       if (jpyEl) {
-        const jpy = (+item.amount||0)*(prices[item.symbol]||150);
-        jpyEl.textContent = `≈ ${yen(jpy)}（1${item.symbol||'USDT'} = ${yen(prices[item.symbol]||150)}）`;
+        const jpy = (+item.amount||0)*usdtRate;
+        jpyEl.textContent = `≈ ${yen(jpy)}（1USDT = ${yen(usdtRate)}）`;
       }
     });
   }
@@ -720,28 +724,23 @@ function updateSubAmount(i, val) {
 function updateSub(i,prop,val) { state.sub[i][prop]=prop==="amount"?+val:val; save(); }
 function delSub(i) { state.sub.splice(i,1); save(); }
 
-// ── Crypto prices（Binance公開API → 制限なし・APIキー不要）──
-// BTC/JPY, USDT/JPY を Binance から取得
-async function fetchPrices() {
-  try {
-    const [btcRes, usdtRes] = await Promise.all([
-      fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCJPY"),
-      fetch("https://api.binance.com/api/v3/ticker/price?symbol=USDTJPY")
-    ]);
-    const btc  = await btcRes.json();
-    const usdt = await usdtRes.json();
-    if (btc.price)  prices.BTC  = Math.round(+btc.price);
-    if (usdt.price) prices.USDT = Math.round(+usdt.price * 100) / 100;
-    render();
-  } catch(e) {
-    console.warn("Price fetch failed", e);
+function updateUsdtRate(val) {
+  const r = parseInt(val) || 150;
+  usdtRate = r;
+  updateTotalDisplay("crypto");
+  // ホームの合計も更新
+  if (document.getElementById("home-crypto")) {
+    document.getElementById("home-crypto").textContent = yen(cryptoTotal());
   }
+}
+function saveUsdtRate(val) {
+  usdtRate = parseInt(val) || 150;
+  localStorage.setItem("usdt-rate", usdtRate);
+  save();
 }
 
 // ── Init ──
-fetchPrices();
 renderHome();
-setInterval(fetchPrices, 60000); // 60秒ごと
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./service-worker.js");
