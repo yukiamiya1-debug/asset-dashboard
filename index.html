@@ -492,6 +492,9 @@ function goTo(page) {
   render();
 }
 
+function saveOnly() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   render();
@@ -564,7 +567,8 @@ function buildAssetCard(type, item, i, isCrypto) {
   return `<div class="asset-card">
     <div class="asset-card-top">
       <input class="name-input" type="text" placeholder="名称" value="${esc(item.name)}"
-        oninput="updateProp('${type}',${i},'name',this.value)">
+        oninput="updateName('${type}',${i},this.value)"
+        onblur="saveOnly()">
       <button class="delete-btn" onclick="delAsset('${type}',${i})">×</button>
     </div>
     ${isCrypto ? `
@@ -572,15 +576,17 @@ function buildAssetCard(type, item, i, isCrypto) {
         <select class="mini-select" style="flex:0 0 100px" onchange="updateProp('${type}',${i},'symbol',this.value)">${symOpts}</select>
         <div class="input-row" style="flex:1">
           <input class="amount-input" type="number" inputmode="decimal" placeholder="0" value="${item.amount||''}"
-            oninput="updateProp('${type}',${i},'amount',this.value)">
+            oninput="updateAmount('${type}',${i},this.value)"
+            onblur="saveOnly()">
         </div>
       </div>
-      <div class="computed-jpy">≈ ${yen(jpy)}（1${item.symbol||'USDT'} = ${yen(prices[item.symbol]||150)}）</div>
+      <div class="computed-jpy" id="jpy-${type}-${i}">≈ ${yen(jpy)}（1${item.symbol||'USDT'} = ${yen(prices[item.symbol]||150)}）</div>
     ` : `
       <div class="input-row">
         <span class="input-prefix">¥</span>
         <input class="amount-input" type="number" inputmode="decimal" placeholder="0" value="${item.amount||''}"
-          oninput="updateProp('${type}',${i},'amount',this.value)">
+          oninput="updateAmount('${type}',${i},this.value)"
+          onblur="saveOnly()">
       </div>
     `}
   </div>`;
@@ -598,9 +604,37 @@ function addAsset(type) {
   state[type].push({ name:"", amount:0, symbol:"USDT" });
   save();
 }
+// テキスト入力中はDOMを再構築しない（キーボードが閉じないように）
+function updateName(type, i, val) {
+  state[type][i].name = val;
+  // saveOnly() は onblur で呼ぶ
+}
+// 金額入力：合計表示だけ部分更新
+function updateAmount(type, i, val) {
+  state[type][i].amount = +val;
+  updateTotalDisplay(type);
+  // saveOnly() は onblur で呼ぶ
+}
 function updateProp(type, i, prop, val) {
   state[type][i][prop] = prop==="amount" ? +val : val;
   save();
+}
+// 合計ラベルだけ書き換え（DOM再構築なし）
+function updateTotalDisplay(type) {
+  const isCrypto = type === "crypto";
+  const total = isCrypto ? cryptoTotal() : state[type].reduce((a,b)=>a+(+b.amount||0),0);
+  const el = document.getElementById(type+"-total");
+  if (el) el.textContent = yen(total);
+  // crypto の場合は円換算表示も更新
+  if (isCrypto) {
+    state[type].forEach((item, idx) => {
+      const jpyEl = document.getElementById(`jpy-${type}-${idx}`);
+      if (jpyEl) {
+        const jpy = (+item.amount||0)*(prices[item.symbol]||150);
+        jpyEl.textContent = `≈ ${yen(jpy)}（1${item.symbol||'USDT'} = ${yen(prices[item.symbol]||150)}）`;
+      }
+    });
+  }
 }
 function delAsset(type, i) {
   state[type].splice(i,1);
@@ -643,7 +677,8 @@ function buildSubCard(item, i) {
     <div class="sub-card-top">
       <div class="sub-dot" style="background:${color}"></div>
       <input class="name-input" type="text" placeholder="サービス名" value="${esc(item.name)}"
-        oninput="updateSub(${i},'name',this.value)">
+        oninput="updateSubName(${i},this.value)"
+        onblur="saveOnly()">
       <button class="delete-btn" onclick="delSub(${i})">×</button>
     </div>
     <div class="sub-grid">
@@ -652,7 +687,8 @@ function buildSubCard(item, i) {
         <div class="input-row" style="padding:9px 12px">
           <span class="input-prefix">¥</span>
           <input class="amount-input" type="number" inputmode="decimal" placeholder="0" value="${item.amount||''}"
-            oninput="updateSub(${i},'amount',this.value)">
+            oninput="updateSubAmount(${i},this.value)"
+            onblur="saveOnly()">
         </div>
       </div>
       <div class="sub-field">
@@ -668,6 +704,14 @@ function buildSubCard(item, i) {
 }
 
 function addSub() { state.sub.push({name:"",amount:0,cycle:"month"}); save(); }
+function updateSubName(i, val) { state.sub[i].name = val; }
+function updateSubAmount(i, val) {
+  state.sub[i].amount = +val;
+  // 合計だけ部分更新
+  const mo = subMonthly();
+  document.getElementById("sub-monthly").textContent = yen(mo);
+  document.getElementById("sub-annual").textContent  = yen(mo*12) + " / 年";
+}
 function updateSub(i,prop,val) { state.sub[i][prop]=prop==="amount"?+val:val; save(); }
 function delSub(i) { state.sub.splice(i,1); save(); }
 
