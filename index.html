@@ -15,14 +15,17 @@
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
 :root {
-  --gold: #d4af37;
-  --gold-dim: rgba(212,175,55,0.18);
-  --gold-glow: rgba(212,175,55,0.35);
-  --bg: #000;
-  --card-bg: rgba(16,16,16,0.97);
-  --card-border: rgba(255,255,255,0.07);
-  --muted: #666;
-  --sub: #999;
+  --green:      #3ec98e;        /* Moneytree メインの黄緑 */
+  --green-dark: #2aad74;        /* 押下・アクセント濃い */
+  --green-dim:  rgba(62,201,142,0.15);
+  --green-glow: rgba(62,201,142,0.3);
+  --bg:         #f2f5f3;        /* 白に緑を微かに含んだ背景 */
+  --surface:    #ffffff;        /* カード白 */
+  --surface2:   #eef3f0;        /* 薄い緑みがかった背景 */
+  --border:     rgba(0,0,0,0.07);
+  --text:       #1a2e25;        /* 濃い緑がかった黒 */
+  --muted:      #7a9488;        /* くすんだグリーングレー */
+  --sub:        #a8bdb5;
   --tab-h: 72px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
@@ -30,7 +33,7 @@
 
 html, body {
   background: var(--bg);
-  color: #fff;
+  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
   overflow-x: hidden;
 }
@@ -40,10 +43,10 @@ html, body {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   height: calc(var(--tab-h) + var(--safe-b));
-  background: rgba(5,5,5,0.96);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
   display: flex;
   align-items: flex-start;
   padding-top: 8px;
@@ -58,21 +61,21 @@ html, body {
   gap: 3px;
   cursor: pointer;
   padding: 6px 2px;
-  opacity: 0.38;
+  opacity: 0.35;
   transition: opacity 0.2s;
 }
 .tab-item.active { opacity: 1; }
-.tab-item:active { opacity: 0.6; }
+.tab-item:active { opacity: 0.55; }
 .tab-icon { font-size: 21px; line-height: 1; }
 .tab-label {
   font-size: 9px;
   letter-spacing: 1px;
-  color: var(--sub);
+  color: var(--muted);
   font-weight: 600;
   text-transform: uppercase;
 }
-.tab-item.active .tab-label { color: var(--gold); }
-.tab-item.active .tab-icon { filter: drop-shadow(0 0 6px var(--gold-glow)); }
+.tab-item.active .tab-label { color: var(--green-dark); }
+.tab-item.active .tab-icon  { filter: drop-shadow(0 0 5px var(--green-glow)); }
 
 /* ── Pages ── */
 .page {
@@ -93,48 +96,49 @@ html, body {
 .page-logo {
   font-size: 36px;
   font-weight: 800;
-  color: var(--gold);
+  color: var(--green);
   line-height: 1;
-  text-shadow: 0 0 24px var(--gold-glow);
 }
 .page-subtitle {
   font-size: 10px;
   letter-spacing: 5px;
   color: var(--muted);
   margin-top: 6px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-/* ── Total Card ── */
+/* ── Total Card（グリーングラデーション） ── */
 .total-card {
-  background: linear-gradient(145deg, rgba(20,20,20,0.97), rgba(5,5,5,0.97));
+  background: linear-gradient(140deg, #3ec98e 0%, #2aad74 100%);
   border-radius: 26px;
-  padding: 26px;
+  padding: 28px 26px;
   margin-bottom: 18px;
-  border: 1px solid var(--gold-dim);
-  box-shadow: 0 12px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  box-shadow: 0 8px 32px rgba(62,201,142,0.28);
+  color: #fff;
 }
 .total-label {
   font-size: 10px;
-  color: var(--muted);
+  color: rgba(255,255,255,0.7);
   letter-spacing: 3px;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 10px;
 }
 .total-value {
   font-size: 40px;
   font-weight: 800;
   letter-spacing: -1px;
+  color: #fff;
 }
-.total-sub { font-size: 12px; color: var(--sub); margin-top: 6px; }
+.total-sub { font-size: 12px; color: rgba(255,255,255,0.65); margin-top: 6px; }
 
 /* ── Chart ── */
 .chart-wrap {
-  background: rgba(8,8,8,0.9);
+  background: var(--surface);
   border-radius: 24px;
   padding: 20px;
   margin-bottom: 18px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
 }
 .chart-wrap canvas { max-height: 190px; }
 
@@ -146,14 +150,15 @@ html, body {
   margin-bottom: 18px;
 }
 .summary-item {
-  background: var(--card-bg);
+  background: var(--surface);
   border-radius: 20px;
   padding: 18px 16px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border);
   cursor: pointer;
-  transition: border-color 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s, transform 0.15s;
 }
-.summary-item:active { border-color: var(--gold-dim); transform: scale(0.98); }
+.summary-item:active { box-shadow: 0 1px 4px rgba(0,0,0,0.06); transform: scale(0.97); }
 .s-icon { font-size: 20px; margin-bottom: 8px; }
 .s-label {
   font-size: 9px;
@@ -162,15 +167,16 @@ html, body {
   font-weight: 700;
   margin-bottom: 6px;
 }
-.s-value { font-size: 17px; font-weight: 800; }
+.s-value { font-size: 17px; font-weight: 800; color: var(--text); }
 
 /* ── Asset Card ── */
 .asset-card {
-  background: rgba(255,255,255,0.025);
+  background: var(--surface);
   border-radius: 18px;
   padding: 14px;
   margin-bottom: 10px;
-  border: 1px solid rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
 }
 .asset-card-top {
   display: flex;
@@ -182,22 +188,22 @@ html, body {
   flex: 1;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
   padding: 4px 0;
-  color: #fff;
+  color: var(--text);
   font-size: 15px;
   font-weight: 600;
   outline: none;
   font-family: inherit;
   transition: border-color 0.2s;
 }
-.name-input:focus { border-bottom-color: var(--gold); }
-.name-input::placeholder { color: #3a3a3a; }
+.name-input:focus { border-bottom-color: var(--green); }
+.name-input::placeholder { color: #c5d4cc; }
 
 .delete-btn {
   background: none;
   border: none;
-  color: #3a3a3a;
+  color: #c5d4cc;
   font-size: 20px;
   cursor: pointer;
   padding: 0 4px;
@@ -205,41 +211,41 @@ html, body {
   transition: color 0.2s;
   flex-shrink: 0;
 }
-.delete-btn:active { color: #c0392b; }
+.delete-btn:active { color: #e05252; }
 
 .input-row {
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.04);
+  background: var(--surface2);
   border-radius: 12px;
   padding: 10px 14px;
   border: 1px solid transparent;
   transition: border-color 0.2s;
 }
-.input-row:focus-within { border-color: rgba(212,175,55,0.3); }
+.input-row:focus-within { border-color: var(--green); }
 .input-prefix { font-size: 13px; color: var(--muted); margin-right: 6px; flex-shrink: 0; }
 .amount-input {
   flex: 1;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text);
   font-size: 17px;
   font-weight: 700;
   outline: none;
   font-family: inherit;
   min-width: 0;
 }
-.amount-input::placeholder { color: #2a2a2a; }
-.computed-jpy { font-size: 11px; color: var(--sub); margin-top: 7px; padding-left: 2px; }
+.amount-input::placeholder { color: #c5d4cc; }
+.computed-jpy { font-size: 11px; color: var(--muted); margin-top: 7px; padding-left: 2px; }
 
 /* ── Crypto symbol select ── */
 .symbol-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .mini-select {
-  background: rgba(255,255,255,0.05);
+  background: var(--surface2);
   border: 1px solid transparent;
   border-radius: 12px;
   padding: 10px 12px;
-  color: #fff;
+  color: var(--text);
   font-size: 14px;
   font-weight: 700;
   outline: none;
@@ -249,48 +255,50 @@ html, body {
   transition: border-color 0.2s;
   cursor: pointer;
 }
-.mini-select:focus { border-color: rgba(212,175,55,0.3); }
-.mini-select option { background: #111; }
+.mini-select:focus { border-color: var(--green); }
+.mini-select option { background: #fff; color: #1a2e25; }
 
 /* ── Add button ── */
 .add-btn {
   width: 100%;
-  border: 1px dashed rgba(212,175,55,0.3);
+  border: 1.5px dashed rgba(62,201,142,0.45);
   border-radius: 16px;
   padding: 14px;
   margin-top: 4px;
   font-size: 13px;
   font-weight: 700;
   background: transparent;
-  color: var(--gold);
+  color: var(--green-dark);
   cursor: pointer;
   letter-spacing: 2px;
   font-family: inherit;
   transition: background 0.2s, transform 0.1s;
 }
-.add-btn:active { background: rgba(212,175,55,0.08); transform: scale(0.99); }
+.add-btn:active { background: var(--green-dim); transform: scale(0.99); }
 
 /* ── Subscription ── */
 .sub-total-bar {
-  background: var(--card-bg);
+  background: var(--surface);
   border-radius: 22px;
   padding: 18px 20px;
   margin-bottom: 18px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 .stb-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; font-weight: 700; }
-.stb-value { font-size: 24px; font-weight: 800; margin-top: 4px; }
-.stb-year  { font-size: 13px; color: var(--sub); margin-top: 4px; text-align: right; }
+.stb-value { font-size: 24px; font-weight: 800; margin-top: 4px; color: var(--text); }
+.stb-year  { font-size: 13px; color: var(--muted); margin-top: 4px; text-align: right; }
 
 .sub-card {
-  background: rgba(255,255,255,0.025);
+  background: var(--surface);
   border-radius: 18px;
   padding: 14px;
   margin-bottom: 10px;
-  border: 1px solid rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
 }
 .sub-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .sub-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -305,11 +313,11 @@ html, body {
 }
 .sub-cycle-sel {
   width: 100%;
-  background: rgba(255,255,255,0.04);
+  background: var(--surface2);
   border: 1px solid transparent;
   border-radius: 12px;
   padding: 10px 12px;
-  color: #fff;
+  color: var(--text);
   font-size: 14px;
   font-weight: 600;
   outline: none;
@@ -318,8 +326,8 @@ html, body {
   appearance: none;
   transition: border-color 0.2s;
 }
-.sub-cycle-sel:focus { border-color: rgba(212,175,55,0.3); }
-.sub-cycle-sel option { background: #111; }
+.sub-cycle-sel:focus { border-color: var(--green); }
+.sub-cycle-sel option { background: #fff; color: #1a2e25; }
 
 .empty-state {
   text-align: center;
@@ -367,7 +375,7 @@ html, body {
       <div class="summary-item" onclick="goTo('sub')">
         <div class="s-icon">🔄</div>
         <div class="s-label">SUBSCRIPTIONS</div>
-        <div class="s-value" id="home-sub-val">¥0<span style="font-size:10px;color:#555;font-weight:500">/月</span></div>
+        <div class="s-value" id="home-sub-val">¥0<span style="font-size:10px;color:#a8bdb5;font-weight:500">/月</span></div>
       </div>
     </div>
   </div>
@@ -526,7 +534,7 @@ function renderHome() {
   document.getElementById("home-bank").textContent  = yen(bank);
   document.getElementById("home-stock").textContent = yen(stock);
   document.getElementById("home-crypto").textContent= yen(crypto);
-  document.getElementById("home-sub-val").innerHTML = yen(subMo)+'<span style="font-size:10px;color:#555;font-weight:500">/月</span>';
+  document.getElementById("home-sub-val").innerHTML = yen(subMo)+'<span style="font-size:10px;color:#a8bdb5;font-weight:500">/月</span>';
 
   const ctx = document.getElementById("homeChart");
   if (homeChart) homeChart.destroy();
@@ -534,9 +542,9 @@ function renderHome() {
     type: "doughnut",
     data: {
       labels: ["銀行","証券","暗号資産"],
-      datasets: [{ data:[bank,stock,crypto], backgroundColor:["#d4af37","#4a9eff","#50fa7b"], borderWidth:0, hoverOffset:8 }]
+      datasets: [{ data:[bank,stock,crypto], backgroundColor:["#3ec98e","#4a9eff","#f5a623"], borderWidth:0, hoverOffset:8 }]
     },
-    options: { cutout:"68%", plugins:{ legend:{ labels:{ color:"#888", font:{size:12}, padding:16 } } } }
+    options: { cutout:"68%", plugins:{ legend:{ labels:{ color:"#7a9488", font:{size:12}, padding:16 } } } }
   });
 }
 
@@ -660,7 +668,7 @@ function renderSub() {
           borderWidth:0, hoverOffset:8
         }]
       },
-      options: { cutout:"65%", plugins:{ legend:{ labels:{ color:"#888", font:{size:11}, padding:12, boxWidth:10 } } } }
+      options: { cutout:"65%", plugins:{ legend:{ labels:{ color:"#7a9488", font:{size:11}, padding:12, boxWidth:10 } } } }
     });
   }
 
