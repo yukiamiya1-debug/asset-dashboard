@@ -1,1038 +1,696 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>AI秘書</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Asset Dashboard</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/icon-512.png" type="image/png">
-<link rel="apple-touch-icon" href="icons/icon-512.png">
-<meta name="theme-color" content="#3B3A8F">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="AI秘書">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Asset Dashboard" />
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-  :root {
-    --bg: #F7F6F3;
-    --surface: #FFFFFF;
-    --surface2: #F0EEE9;
-    --border: rgba(0,0,0,0.08);
-    --border-strong: rgba(0,0,0,0.14);
-    --text: #1A1916;
-    --muted: #8A8880;
-    --accent: #3B3A8F;
-    --accent-light: #EEEDFE;
-    --accent-text: #26215C;
-    --green: #1D9E75;
-    --green-light: #E1F5EE;
-    --yellow: #BA7517;
-    --yellow-light: #FAEEDA;
-    --red: #A32D2D;
-    --red-light: #FCEBEB;
-    --radius: 14px;
-    --radius-sm: 8px;
-    --font: 'Inter', -apple-system, 'Hiragino Sans', sans-serif;
-    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-  }
+:root {
+  --gold: #d4af37;
+  --gold-dim: rgba(212,175,55,0.18);
+  --gold-glow: rgba(212,175,55,0.35);
+  --bg: #000;
+  --card-bg: rgba(16,16,16,0.97);
+  --card-border: rgba(255,255,255,0.07);
+  --muted: #666;
+  --sub: #999;
+  --tab-h: 72px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+}
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #111110;
-      --surface: #1C1C1A;
-      --surface2: #252523;
-      --border: rgba(255,255,255,0.07);
-      --border-strong: rgba(255,255,255,0.12);
-      --text: #EDECEA;
-      --muted: #706E69;
-      --accent: #7F77DD;
-      --accent-light: #26215C;
-      --accent-text: #CECBF6;
-      --green: #1D9E75;
-      --green-light: #04342C;
-      --yellow: #EF9F27;
-      --yellow-light: #412402;
-      --red: #E24B4A;
-      --red-light: #501313;
-      --shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-  }
+html, body {
+  background: var(--bg);
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  overflow-x: hidden;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+/* ── Tab Nav ── */
+.tab-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: calc(var(--tab-h) + var(--safe-b));
+  background: rgba(5,5,5,0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+  padding-bottom: var(--safe-b);
+  z-index: 100;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 6px 2px;
+  opacity: 0.38;
+  transition: opacity 0.2s;
+}
+.tab-item.active { opacity: 1; }
+.tab-item:active { opacity: 0.6; }
+.tab-icon { font-size: 21px; line-height: 1; }
+.tab-label {
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--sub);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.tab-item.active .tab-label { color: var(--gold); }
+.tab-item.active .tab-icon { filter: drop-shadow(0 0 6px var(--gold-glow)); }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font);
-    min-height: 100vh;
-    padding-bottom: 100px;
-  }
+/* ── Pages ── */
+.page {
+  display: none;
+  min-height: 100vh;
+  padding: calc(var(--safe-t) + 24px) 18px calc(var(--tab-h) + var(--safe-b) + 24px);
+  animation: fadeUp 0.38s ease;
+}
+.page.active { display: block; }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.container { max-width: 520px; margin: 0 auto; }
 
-  header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: calc(env(safe-area-inset-top, 0px) + 26px) 20px 14px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  .header-inner {
-    max-width: 640px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .logo {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .logo-dot {
-    width: 8px; height: 8px;
-    background: var(--accent);
-    border-radius: 50%;
-    animation: pulse 2.5s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%,100% { opacity:1; transform:scale(1); }
-    50% { opacity:.4; transform:scale(.75); }
-  }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .time-stack { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; }
-  .time-badge { font-size: 13px; font-weight: 600; color: var(--text); }
-  .date-badge { font-size: 11px; font-weight: 500; color: var(--muted); }
-  .greeting-tag {
-    font-size: 12px; color: var(--muted);
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 20px; padding: 3px 10px;
-  }
+/* ── Page Header ── */
+.page-header { margin-bottom: 26px; }
+.page-logo {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--gold);
+  line-height: 1;
+  text-shadow: 0 0 24px var(--gold-glow);
+}
+.page-subtitle {
+  font-size: 10px;
+  letter-spacing: 5px;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 500;
+}
 
-  main { max-width: 640px; margin: 0 auto; padding: 20px 16px; }
+/* ── Total Card ── */
+.total-card {
+  background: linear-gradient(145deg, rgba(20,20,20,0.97), rgba(5,5,5,0.97));
+  border-radius: 26px;
+  padding: 26px;
+  margin-bottom: 18px;
+  border: 1px solid var(--gold-dim);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.total-label {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 3px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.total-value {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+.total-sub { font-size: 12px; color: var(--sub); margin-top: 6px; }
 
-  .input-card {
-    background: var(--surface);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 12px;
-  }
-  .input-card textarea {
-    width: 100%; background: transparent; border: none;
-    color: var(--text); font-family: var(--font);
-    font-size: 15px; line-height: 1.65; resize: none; min-height: 90px;
-    padding: 16px 16px 10px;
-  }
-  .input-card textarea:focus { outline: none; }
-  .input-card textarea::placeholder { color: var(--muted); }
+/* ── Chart ── */
+.chart-wrap {
+  background: rgba(8,8,8,0.9);
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 18px;
+  border: 1px solid var(--card-border);
+}
+.chart-wrap canvas { max-height: 190px; }
 
-  .action-bar {
-    display: flex; align-items: center; gap: 6px;
-    padding: 10px 12px;
-    border-top: 1px solid var(--border);
-    background: var(--surface2);
-    flex-wrap: wrap;
-  }
-  .btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
-    padding: 7px 13px; font-size: 13px; font-family: var(--font);
-    font-weight: 500; cursor: pointer; transition: all .15s; white-space: nowrap;
-  }
-  .btn:active { transform: scale(.97); }
-  .btn-add { background: var(--accent); color: #fff; border-color: transparent; }
-  .btn-add:hover { opacity: .9; }
-  .btn-voice { background: var(--surface); color: var(--text); }
-  .btn-voice:hover { background: var(--bg); }
-  .btn-voice.listening {
-    background: var(--red); color: #fff; border-color: transparent;
-    animation: listening-pulse 1.3s ease-in-out infinite;
-  }
-  @keyframes listening-pulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(163,45,45,.35); }
-    50% { box-shadow: 0 0 0 7px rgba(163,45,45,0); }
-  }
-  .input-card.listening { border-color: var(--red); }
-  .listening-strip {
-    display: none;
-    align-items: center; gap: 8px;
-    padding: 9px 16px 0;
-    font-size: 12px; font-weight: 500; color: var(--red);
-  }
-  .input-card.listening .listening-strip { display: flex; }
-  .listening-bars { display: flex; align-items: center; gap: 2px; height: 12px; }
-  .listening-bars span {
-    width: 2.5px; background: var(--red); border-radius: 2px;
-    animation: bar-bounce 0.9s ease-in-out infinite;
-  }
-  .listening-bars span:nth-child(1) { height: 5px; animation-delay: 0s; }
-  .listening-bars span:nth-child(2) { height: 11px; animation-delay: .15s; }
-  .listening-bars span:nth-child(3) { height: 7px; animation-delay: .3s; }
-  .listening-bars span:nth-child(4) { height: 12px; animation-delay: .45s; }
-  .listening-bars span:nth-child(5) { height: 6px; animation-delay: .6s; }
-  @keyframes bar-bounce {
-    0%,100% { transform: scaleY(.4); }
-    50% { transform: scaleY(1); }
-  }
-  .btn-sort {
-    background: var(--surface); color: var(--accent);
-    border-color: var(--accent); font-weight: 600;
-  }
-  .btn-sort:hover { background: var(--accent-light); }
-  .btn-copy {
-    background: var(--surface); color: var(--text);
-  }
-  .btn-copy:hover { background: var(--bg); }
-  .btn-copy.copied { background: var(--green); color: #fff; border-color: transparent; }
+/* ── Summary Grid ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+  margin-bottom: 18px;
+}
+.summary-item {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 18px 16px;
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.summary-item:active { border-color: var(--gold-dim); transform: scale(0.98); }
+.s-icon { font-size: 20px; margin-bottom: 8px; }
+.s-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.s-value { font-size: 17px; font-weight: 800; }
 
-  /* ── 切り替えタブ ── */
-  .view-tabs {
-    display: flex;
-    gap: 4px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 4px;
-    margin-bottom: 16px;
-  }
-  .tab {
-    flex: 1;
-    text-align: center;
-    padding: 7px 0;
-    font-size: 13px;
-    font-weight: 500;
-    font-family: var(--font);
-    border: none;
-    border-radius: 7px;
-    cursor: pointer;
-    color: var(--muted);
-    background: transparent;
-    transition: all .15s;
-  }
-  .tab.active {
-    background: var(--surface);
-    color: var(--text);
-    box-shadow: var(--shadow);
-  }
+/* ── Asset Card ── */
+.asset-card {
+  background: rgba(255,255,255,0.025);
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.asset-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.name-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 4px 0;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.name-input:focus { border-bottom-color: var(--gold); }
+.name-input::placeholder { color: #3a3a3a; }
 
-  /* ── ジャンル別ビュー ── */
-  #genre-view { display: none; }
-  #genre-view.visible { display: block; }
+.delete-btn {
+  background: none;
+  border: none;
+  color: #3a3a3a;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+.delete-btn:active { color: #c0392b; }
 
-  .genre-block {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    margin-bottom: 10px;
-    overflow: hidden;
-  }
-  .genre-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 14px;
-    cursor: pointer;
-    user-select: none;
-  }
-  .genre-header:hover { background: var(--surface2); }
-  .genre-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  .genre-icon {
-    width: 28px; height: 28px;
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px;
-    flex-shrink: 0;
-  }
-  .genre-count {
-    font-size: 11px; font-weight: 500;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 2px 8px;
-    color: var(--muted);
-  }
-  .genre-chevron {
-    font-size: 12px;
-    color: var(--muted);
-    transition: transform .2s;
-  }
-  .genre-chevron.open { transform: rotate(180deg); }
+.input-row {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+.input-row:focus-within { border-color: rgba(212,175,55,0.3); }
+.input-prefix { font-size: 13px; color: var(--muted); margin-right: 6px; flex-shrink: 0; }
+.amount-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  outline: none;
+  font-family: inherit;
+  min-width: 0;
+}
+.amount-input::placeholder { color: #2a2a2a; }
+.computed-jpy { font-size: 11px; color: var(--sub); margin-top: 7px; padding-left: 2px; }
 
-  .genre-items { border-top: 1px solid var(--border); }
-  .genre-item {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-  }
-  .genre-item:hover { background: var(--surface2); }
-  .genre-item:last-child { border-bottom: none; }
-  .priority-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 6px;
-  }
-  .dot-p1 { background: var(--red); }
-  .dot-p2 { background: var(--yellow); }
-  .dot-p3 { background: var(--green); }
-  .genre-item-body { flex: 1; min-width: 0; }
-  .genre-item-text { font-size: 14px; line-height: 1.5; color: var(--text); }
-  .genre-item-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .priority-badge {
-    font-size: 11px; font-weight: 500;
-    padding: 2px 8px; border-radius: 20px; flex-shrink: 0; align-self: flex-start; margin-top: 2px;
-  }
-  .badge-p1 { background: var(--red-light); color: var(--red); }
-  .badge-p2 { background: var(--yellow-light); color: var(--yellow); }
-  .badge-p3 { background: var(--green-light); color: var(--green); }
+/* ── Crypto symbol select ── */
+.symbol-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.mini-select {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+.mini-select:focus { border-color: rgba(212,175,55,0.3); }
+.mini-select option { background: #111; }
 
-  /* ── Inbox ── */
-  #inbox-view {}
-  .inbox-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin: 4px 0 10px;
-  }
-  .inbox-label {
-    font-size: 11px; font-weight: 600;
-    letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
-  }
-  .inbox-actions { display: flex; align-items: center; gap: 8px; }
-  .count-pill {
-    font-size: 11px; font-weight: 500; color: var(--muted);
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 20px; padding: 2px 9px;
-  }
-  .btn-clear {
-    font-size: 12px; font-weight: 500; color: var(--muted);
-    background: none; border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 4px 10px;
-    cursor: pointer; font-family: var(--font);
-  }
-  .btn-clear:hover { color: var(--red); border-color: var(--red); }
+/* ── Add button ── */
+.add-btn {
+  width: 100%;
+  border: 1px dashed rgba(212,175,55,0.3);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  letter-spacing: 2px;
+  font-family: inherit;
+  transition: background 0.2s, transform 0.1s;
+}
+.add-btn:active { background: rgba(212,175,55,0.08); transform: scale(0.99); }
 
-  .task-row {
-    position: relative;
-    margin-bottom: 6px;
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .swipe-bg {
-    position: absolute;
-    top: 0; bottom: 0; left: 0; right: 0;
-    display: flex;
-    align-items: center;
-    border-radius: var(--radius);
-  }
-  .swipe-bg .side {
-    flex: 1; height: 100%;
-    display: flex; align-items: center;
-    font-size: 13px; font-weight: 600; color: #fff;
-  }
-  .swipe-bg .side.done-side { background: var(--green); justify-content: flex-start; padding-left: 18px; }
-  .swipe-bg .side.del-side { background: var(--red); justify-content: flex-end; padding-right: 18px; }
-  .task-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 12px 14px;
-    display: flex; gap: 10px; align-items: flex-start;
-    box-shadow: var(--shadow);
-    position: relative;
-    touch-action: pan-y;
-    transition: transform .25s cubic-bezier(.2,.8,.2,1), opacity .2s;
-    cursor: pointer;
-  }
-  .task-card.dragging { transition: none; }
-  .task-card.done { opacity: .4; }
-  .check-box {
-    width: 18px; height: 18px; border: 1.5px solid var(--border-strong);
-    border-radius: 5px; flex-shrink: 0; margin-top: 1px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; color: #fff; transition: all .15s;
-  }
-  .check-box.checked { background: var(--green); border-color: var(--green); }
-  .task-body { flex: 1; min-width: 0; }
-  .task-text { font-size: 14px; line-height: 1.5; color: var(--text); word-break: break-all; }
-  .task-text.done-text { text-decoration: line-through; color: var(--muted); }
-  .task-date { font-size: 11px; color: var(--muted); margin-top: 3px; }
-  .task-del {
-    background: none; border: none; color: var(--border-strong);
-    cursor: pointer; font-size: 15px; padding: 0; line-height: 1; flex-shrink: 0;
-  }
-  .task-del:hover { color: var(--red); }
+/* ── Subscription ── */
+.sub-total-bar {
+  background: var(--card-bg);
+  border-radius: 22px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  border: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.stb-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; font-weight: 700; }
+.stb-value { font-size: 24px; font-weight: 800; margin-top: 4px; }
+.stb-year  { font-size: 13px; color: var(--sub); margin-top: 4px; text-align: right; }
 
-  .empty {
-    text-align: center; padding: 48px 20px;
-    color: var(--muted); font-size: 13px; line-height: 1.8;
-  }
-  .empty-icon {
-    width: 40px; height: 40px; border: 1.5px solid var(--border-strong);
-    border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 14px; font-size: 18px;
-  }
+.sub-card {
+  background: rgba(255,255,255,0.025);
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.sub-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.sub-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sub-field label {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.sub-cycle-sel {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.2s;
+}
+.sub-cycle-sel:focus { border-color: rgba(212,175,55,0.3); }
+.sub-cycle-sel option { background: #111; }
 
-  #toast {
-    position: fixed; bottom: 28px; left: 50%;
-    transform: translateX(-50%) translateY(70px);
-    background: var(--text); color: var(--bg);
-    border-radius: 20px; padding: 9px 18px;
-    font-size: 13px; font-weight: 500; font-family: var(--font);
-    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
-    z-index: 100; white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,.15);
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* ── 編集モーダル ── */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.4);
-    display: flex; align-items: flex-end; justify-content: center;
-    z-index: 200;
-    opacity: 0; pointer-events: none;
-    transition: opacity .2s;
-  }
-  .modal-overlay.open { opacity: 1; pointer-events: auto; }
-  @media (min-width: 560px) {
-    .modal-overlay { align-items: center; }
-  }
-  .modal-sheet {
-    background: var(--surface);
-    border-radius: 18px 18px 0 0;
-    width: 100%; max-width: 480px;
-    padding: 18px 18px calc(20px + env(safe-area-inset-bottom));
-    box-shadow: 0 -4px 24px rgba(0,0,0,.15);
-    transform: translateY(100%);
-    transition: transform .25s cubic-bezier(.2,.8,.2,1);
-    max-height: 86vh;
-    overflow-y: auto;
-  }
-  .modal-overlay.open .modal-sheet { transform: translateY(0); }
-  @media (min-width: 560px) {
-    .modal-sheet { border-radius: 18px; transform: translateY(12px) scale(.97); }
-    .modal-overlay.open .modal-sheet { transform: translateY(0) scale(1); }
-  }
-  .modal-handle {
-    width: 36px; height: 4px; background: var(--border-strong);
-    border-radius: 4px; margin: 0 auto 16px;
-  }
-  .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
-  .modal-field { margin-bottom: 14px; }
-  .modal-label {
-    font-size: 11px; font-weight: 600; color: var(--muted);
-    letter-spacing: .5px; text-transform: uppercase;
-    margin-bottom: 7px; display: block;
-  }
-  .modal-textarea {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm); color: var(--text); font-family: var(--font);
-    font-size: 14px; line-height: 1.6; padding: 10px 12px; resize: none; min-height: 64px;
-  }
-  .modal-textarea:focus { outline: none; border-color: var(--accent); }
-  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip {
-    font-size: 12.5px; font-weight: 500; font-family: var(--font);
-    border: 1px solid var(--border-strong); border-radius: 20px;
-    padding: 6px 12px; cursor: pointer; background: var(--surface2); color: var(--text);
-    display: inline-flex; align-items: center; gap: 5px;
-  }
-  .chip.selected { background: var(--accent); color: #fff; border-color: transparent; }
-  .chip.p1.selected { background: var(--red); }
-  .chip.p2.selected { background: var(--yellow); }
-  .chip.p3.selected { background: var(--green); }
-  .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
-  .modal-btn {
-    flex: 1; padding: 11px 0; border-radius: var(--radius-sm);
-    font-size: 14px; font-weight: 600; font-family: var(--font);
-    border: 1px solid var(--border-strong); cursor: pointer; background: var(--surface);
-    color: var(--text);
-  }
-  .modal-btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
-  .modal-btn.danger { background: none; color: var(--red); border-color: var(--red); flex: 0 0 auto; padding: 11px 16px; }
+.empty-state {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 1px;
+  line-height: 2;
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-dot"></div>
-      AI秘書
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="container">
+    <div class="page-header">
+      <div class="page-logo">¥</div>
+      <div class="page-subtitle">ASSET DASHBOARD</div>
     </div>
-    <div class="header-right">
-      <span class="greeting-tag" id="greeting">読み込み中</span>
-      <div class="time-stack">
-        <span class="time-badge" id="clock">--:--</span>
-        <span class="date-badge" id="dateLabel">----/--/--</span>
+    <div class="total-card">
+      <div class="total-label">TOTAL ASSETS</div>
+      <div class="total-value" id="home-total">¥0</div>
+      <div class="total-sub" id="home-sub-info">—</div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="homeChart"></canvas>
+    </div>
+    <div class="summary-grid">
+      <div class="summary-item" onclick="goTo('bank')">
+        <div class="s-icon">🏦</div>
+        <div class="s-label">BANK</div>
+        <div class="s-value" id="home-bank">¥0</div>
       </div>
-    </div>
-  </div>
-</header>
-
-<main>
-  <div class="input-card" id="inputCard">
-    <div class="listening-strip">
-      <div class="listening-bars"><span></span><span></span><span></span><span></span><span></span></div>
-      聞いています…
-    </div>
-    <textarea id="memo" rows="4" placeholder="気になること、やること、なんでも…&#10;例：確定申告、ジム予約、車検、新しい本読む"></textarea>
-    <div class="action-bar">
-      <button class="btn btn-add" onclick="saveMemo()">＋ 追加</button>
-      <button class="btn btn-voice" id="voiceBtn" onclick="voice()">🎤 音声</button>
-      <button class="btn btn-copy" id="copyBtn" onclick="copyAsText()">📋 まとめてテキスト</button>
-      <button class="btn btn-sort" onclick="sortAndSwitch()">⚡ 整理する</button>
-    </div>
-  </div>
-
-  <div class="view-tabs">
-    <button class="tab active" id="tab-inbox" onclick="switchTab('inbox')">📥 Inbox</button>
-    <button class="tab" id="tab-genre" onclick="switchTab('genre')">🗂 ジャンル別</button>
-  </div>
-
-  <!-- Inbox ビュー -->
-  <div id="inbox-view">
-    <div class="inbox-header">
-      <span class="inbox-label">すべてのタスク</span>
-      <div class="inbox-actions">
-        <span class="count-pill" id="inbox-count">0件</span>
-        <button class="btn-clear" onclick="clearDone()">完了を削除</button>
+      <div class="summary-item" onclick="goTo('stock')">
+        <div class="s-icon">📈</div>
+        <div class="s-label">STOCK</div>
+        <div class="s-value" id="home-stock">¥0</div>
       </div>
-    </div>
-    <div id="inbox"></div>
-  </div>
-
-  <!-- ジャンル別ビュー -->
-  <div id="genre-view">
-    <div id="genre-body"></div>
-  </div>
-</main>
-
-<div id="toast"></div>
-
-<div class="modal-overlay" id="editModal" onclick="if(event.target===this) closeEdit()">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">タスクを編集</div>
-    <div class="modal-field">
-      <label class="modal-label">内容</label>
-      <textarea class="modal-textarea" id="editText" rows="3"></textarea>
-    </div>
-    <div class="modal-field">
-      <label class="modal-label">ジャンル</label>
-      <div class="chip-row" id="editGenreChips"></div>
-    </div>
-    <div class="modal-field">
-      <label class="modal-label">優先度</label>
-      <div class="chip-row" id="editPriorityChips"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-btn danger" onclick="deleteFromEdit()">削除</button>
-      <button class="modal-btn" onclick="closeEdit()">キャンセル</button>
-      <button class="modal-btn primary" onclick="saveEdit()">保存</button>
+      <div class="summary-item" onclick="goTo('crypto')">
+        <div class="s-icon">₿</div>
+        <div class="s-label">CRYPTO</div>
+        <div class="s-value" id="home-crypto">¥0</div>
+      </div>
+      <div class="summary-item" onclick="goTo('sub')">
+        <div class="s-icon">🔄</div>
+        <div class="s-label">SUBSCRIPTIONS</div>
+        <div class="s-value" id="home-sub-val">¥0<span style="font-size:10px;color:#555;font-weight:500">/月</span></div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- BANK -->
+<div class="page" id="page-bank">
+  <div class="container">
+    <div class="page-header">
+      <div class="page-logo">🏦</div>
+      <div class="page-subtitle">BANK ACCOUNTS</div>
+    </div>
+    <div class="total-card">
+      <div class="total-label">BANK TOTAL</div>
+      <div class="total-value" id="bank-total">¥0</div>
+    </div>
+    <div id="bank-list"></div>
+  </div>
+</div>
+
+<!-- STOCK -->
+<div class="page" id="page-stock">
+  <div class="container">
+    <div class="page-header">
+      <div class="page-logo">📈</div>
+      <div class="page-subtitle">STOCK &amp; FUND</div>
+    </div>
+    <div class="total-card">
+      <div class="total-label">STOCK TOTAL</div>
+      <div class="total-value" id="stock-total">¥0</div>
+    </div>
+    <div id="stock-list"></div>
+  </div>
+</div>
+
+<!-- CRYPTO -->
+<div class="page" id="page-crypto">
+  <div class="container">
+    <div class="page-header">
+      <div class="page-logo">₿</div>
+      <div class="page-subtitle">CRYPTO ASSETS</div>
+    </div>
+    <div class="total-card">
+      <div class="total-label">CRYPTO TOTAL</div>
+      <div class="total-value" id="crypto-total">¥0</div>
+      <div class="total-sub" id="crypto-rate">レート取得中…</div>
+    </div>
+    <div id="crypto-list"></div>
+  </div>
+</div>
+
+<!-- SUBSCRIPTION -->
+<div class="page" id="page-sub">
+  <div class="container">
+    <div class="page-header">
+      <div class="page-logo">🔄</div>
+      <div class="page-subtitle">SUBSCRIPTIONS</div>
+    </div>
+    <div class="sub-total-bar">
+      <div>
+        <div class="stb-label">MONTHLY</div>
+        <div class="stb-value" id="sub-monthly">¥0</div>
+      </div>
+      <div>
+        <div class="stb-label" style="text-align:right">ANNUAL</div>
+        <div class="stb-year" id="sub-annual">¥0 / 年</div>
+      </div>
+    </div>
+    <div class="chart-wrap" style="margin-bottom:18px">
+      <canvas id="subChart"></canvas>
+    </div>
+    <div id="sub-list"></div>
+    <button class="add-btn" onclick="addSub()">＋ サブスク追加</button>
+  </div>
+</div>
+
+<!-- Tab Nav -->
+<nav class="tab-nav">
+  <div class="tab-item active" id="tab-home" onclick="goTo('home')">
+    <span class="tab-icon">⌂</span>
+    <span class="tab-label">ホーム</span>
+  </div>
+  <div class="tab-item" id="tab-bank" onclick="goTo('bank')">
+    <span class="tab-icon">🏦</span>
+    <span class="tab-label">銀行</span>
+  </div>
+  <div class="tab-item" id="tab-stock" onclick="goTo('stock')">
+    <span class="tab-icon">📈</span>
+    <span class="tab-label">証券</span>
+  </div>
+  <div class="tab-item" id="tab-crypto" onclick="goTo('crypto')">
+    <span class="tab-icon">₿</span>
+    <span class="tab-label">暗号資産</span>
+  </div>
+  <div class="tab-item" id="tab-sub" onclick="goTo('sub')">
+    <span class="tab-icon">🔄</span>
+    <span class="tab-label">サブスク</span>
+  </div>
+</nav>
+
 <script>
-let tasks = JSON.parse(localStorage.getItem("tasks_v6") || "[]");
-let currentTab = "inbox";
+const STORAGE_KEY = "asset-dashboard-v2";
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { bank:[], stock:[], crypto:[], sub:[] };
 
-updateClock();
-setInterval(updateClock, 30000);
-render();
+const CRYPTO_IDS = {
+  BTC:"bitcoin", USDT:"tether"
+};
+let prices = { BTC:10000000, USDT:150 };
 
-function updateClock() {
-  const now = new Date();
-  const h = now.getHours();
-  document.getElementById("clock").textContent =
-    now.toLocaleTimeString("ja-JP", {hour:"2-digit", minute:"2-digit"});
-  document.getElementById("dateLabel").textContent =
-    now.toLocaleDateString("ja-JP", {month:"short", day:"numeric", weekday:"short"});
-  document.getElementById("greeting").textContent =
-    h < 5 ? "夜更かし中" : h < 10 ? "おはよう" :
-    h < 14 ? "午前中" : h < 17 ? "午後" : h < 20 ? "夕方" : "夜";
+const SUB_COLORS = ["#d4af37","#4a9eff","#ff6b6b","#50fa7b","#bd93f9","#ffb86c","#8be9fd","#ff79c6","#a8e6cf","#ffd3b6"];
+
+let currentPage = "home";
+let homeChart, subChart;
+
+// ── Navigation ──
+function goTo(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active"));
+  document.getElementById("page-" + page).classList.add("active");
+  document.getElementById("tab-"  + page).classList.add("active");
+  currentPage = page;
+  render();
 }
 
-function persist() { localStorage.setItem("tasks_v6", JSON.stringify(tasks)); }
-
-function saveMemo() {
-  const v = document.getElementById("memo").value.trim();
-  if (!v) return;
-  v.split(/[,、。\n]+/).map(s => s.trim()).filter(Boolean).forEach(text => {
-    tasks.unshift({ id: Date.now() + Math.random(), text, done: false, date: new Date().toLocaleString("ja-JP"), genreOverride: null, priorityOverride: null });
-  });
-  document.getElementById("memo").value = "";
-  persist(); render();
-  toast("追加しました");
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  render();
 }
 
-function toggleDone(id) {
-  const t = tasks.find(t => t.id === id);
-  if (t) { t.done = !t.done; persist(); render(); }
-}
-
-function deleteTask(id) {
-  tasks = tasks.filter(t => t.id !== id);
-  persist(); render();
-}
-
-function clearDone() {
-  tasks = tasks.filter(t => !t.done);
-  persist(); render();
-  toast("完了タスクを削除しました");
-}
-
-function switchTab(tab) {
-  currentTab = tab;
-  document.getElementById("inbox-view").style.display = tab === "inbox" ? "block" : "none";
-  const gv = document.getElementById("genre-view");
-  gv.style.display = tab === "genre" ? "block" : "none";
-  document.getElementById("tab-inbox").classList.toggle("active", tab === "inbox");
-  document.getElementById("tab-genre").classList.toggle("active", tab === "genre");
-  if (tab === "genre") renderGenre();
-}
-
+// ── Render dispatcher ──
 function render() {
-  renderInbox();
-  if (currentTab === "genre") renderGenre();
+  if (currentPage === "home")   renderHome();
+  if (currentPage === "bank")   renderList("bank",  false);
+  if (currentPage === "stock")  renderList("stock", false);
+  if (currentPage === "crypto") renderCrypto();
+  if (currentPage === "sub")    renderSub();
 }
 
-function renderInbox() {
-  const box = document.getElementById("inbox");
-  const active = tasks.filter(t => !t.done);
-  const done   = tasks.filter(t => t.done);
-  const ordered = [...active, ...done];
+// ── Format ──
+function yen(n) { return "¥" + Math.round(+n||0).toLocaleString("ja-JP"); }
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;"); }
 
-  if (ordered.length === 0) {
-    box.innerHTML = `<div class="empty"><div class="empty-icon">📭</div>タスクがありません<br>上のフォームから追加してみてください</div>`;
+// ── HOME ──
+function bankTotal()   { return state.bank.reduce((a,b)=>a+(+b.amount||0),0); }
+function stockTotal()  { return state.stock.reduce((a,b)=>a+(+b.amount||0),0); }
+function cryptoTotal() { return state.crypto.reduce((a,b)=>a+(+b.amount||0)*(prices[b.symbol]||150),0); }
+function subMonthly()  { return state.sub.reduce((a,b)=>{const m=b.cycle==="year"?(+b.amount/12):(+b.amount||0);return a+m;},0); }
+
+function renderHome() {
+  const bank=bankTotal(), stock=stockTotal(), crypto=cryptoTotal(), total=bank+stock+crypto, subMo=subMonthly();
+  document.getElementById("home-total").textContent = yen(total);
+  document.getElementById("home-sub-info").textContent = "サブスク月額 " + yen(subMo);
+  document.getElementById("home-bank").textContent  = yen(bank);
+  document.getElementById("home-stock").textContent = yen(stock);
+  document.getElementById("home-crypto").textContent= yen(crypto);
+  document.getElementById("home-sub-val").innerHTML = yen(subMo)+'<span style="font-size:10px;color:#555;font-weight:500">/月</span>';
+
+  const ctx = document.getElementById("homeChart");
+  if (homeChart) homeChart.destroy();
+  homeChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["銀行","証券","暗号資産"],
+      datasets: [{ data:[bank,stock,crypto], backgroundColor:["#d4af37","#4a9eff","#50fa7b"], borderWidth:0, hoverOffset:8 }]
+    },
+    options: { cutout:"68%", plugins:{ legend:{ labels:{ color:"#888", font:{size:12}, padding:16 } } } }
+  });
+}
+
+// ── Generic list (bank / stock) ──
+function renderList(type, isCrypto) {
+  const totalId = type+"-total";
+  const listId  = type+"-list";
+  const label   = type==="bank"?"口座":"銘柄";
+
+  const total = isCrypto ? cryptoTotal() : state[type].reduce((a,b)=>a+(+b.amount||0),0);
+  document.getElementById(totalId).textContent = yen(total);
+
+  const listEl = document.getElementById(listId);
+  if (state[type].length === 0) {
+    listEl.innerHTML = `<div class="empty-state">まだデータがありません<br>下の＋ボタンから${label}を追加してください</div>`;
   } else {
-    box.innerHTML = ordered.map(t => `
-      <div class="task-row" id="row-${t.id}">
-        <div class="swipe-bg">
-          <div class="side done-side">${t.done ? "↺ 未完了に戻す" : "✓ 完了"}</div>
-          <div class="side del-side">削除 ×</div>
-        </div>
-        <div class="task-card${t.done ? " done" : ""}" id="card-${t.id}"
-             onpointerdown="swipeStart(event, ${t.id})"
-             onclick="cardClick(event, ${t.id})">
-          <div class="check-box${t.done ? " checked" : ""}" onclick="event.stopPropagation(); toggleDone(${t.id})">${t.done ? "✓" : ""}</div>
-          <div class="task-body">
-            <div class="task-text${t.done ? " done-text" : ""}">${esc(t.text)}</div>
-            <div class="task-date">${t.date}</div>
-          </div>
-          <button class="task-del" onclick="event.stopPropagation(); deleteTask(${t.id})">×</button>
+    listEl.innerHTML = state[type].map((item,i)=>buildAssetCard(type,item,i,isCrypto)).join("");
+  }
+  listEl.innerHTML += `<button class="add-btn" onclick="addAsset('${type}')">＋ ${label}を追加</button>`;
+}
+
+function buildAssetCard(type, item, i, isCrypto) {
+  const jpy = isCrypto ? (+item.amount||0)*(prices[item.symbol]||150) : (+item.amount||0);
+  const symOpts = isCrypto ? Object.keys(CRYPTO_IDS).map(s=>
+    `<option value="${s}"${item.symbol===s?" selected":""}>${s}</option>`
+  ).join("") : "";
+
+  return `<div class="asset-card">
+    <div class="asset-card-top">
+      <input class="name-input" type="text" placeholder="名称" value="${esc(item.name)}"
+        oninput="updateProp('${type}',${i},'name',this.value)">
+      <button class="delete-btn" onclick="delAsset('${type}',${i})">×</button>
+    </div>
+    ${isCrypto ? `
+      <div class="symbol-row">
+        <select class="mini-select" style="flex:0 0 100px" onchange="updateProp('${type}',${i},'symbol',this.value)">${symOpts}</select>
+        <div class="input-row" style="flex:1">
+          <input class="amount-input" type="number" inputmode="decimal" placeholder="0" value="${item.amount||''}"
+            oninput="updateProp('${type}',${i},'amount',this.value)">
         </div>
       </div>
-    `).join("");
-  }
-  document.getElementById("inbox-count").textContent = `${tasks.filter(t=>!t.done).length}件`;
+      <div class="computed-jpy">≈ ${yen(jpy)}（1${item.symbol||'USDT'} = ${yen(prices[item.symbol]||150)}）</div>
+    ` : `
+      <div class="input-row">
+        <span class="input-prefix">¥</span>
+        <input class="amount-input" type="number" inputmode="decimal" placeholder="0" value="${item.amount||''}"
+          oninput="updateProp('${type}',${i},'amount',this.value)">
+      </div>
+    `}
+  </div>`;
 }
 
-function esc(s) {
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+// ── CRYPTO page ──
+function renderCrypto() {
+  const rateStr = Object.keys(CRYPTO_IDS).map(s=>`${s} ${yen(prices[s])}`).join("  ·  ");
+  document.getElementById("crypto-rate").textContent = rateStr;
+  renderList("crypto", true);
 }
 
-// ── スワイプ操作 ──
-const SWIPE_THRESHOLD = 70;
-let swipeState = null;
-
-function swipeStart(e, id) {
-  const card = document.getElementById(`card-${id}`);
-  if (!card) return;
-  swipeState = { id, startX: e.clientX, startY: e.clientY, dx: 0, dragging: false, moved: false };
-  card.classList.add("dragging");
-  card.setPointerCapture && e.pointerId != null && card.setPointerCapture(e.pointerId);
-  card.onpointermove = ev => swipeMove(ev, id);
-  card.onpointerup = ev => swipeEnd(ev, id);
-  card.onpointercancel = ev => swipeEnd(ev, id);
+// ── Asset CRUD ──
+function addAsset(type) {
+  state[type].push({ name:"", amount:0, symbol:"USDT" });
+  save();
+}
+function updateProp(type, i, prop, val) {
+  state[type][i][prop] = prop==="amount" ? +val : val;
+  save();
+}
+function delAsset(type, i) {
+  state[type].splice(i,1);
+  save();
 }
 
-function swipeMove(e, id) {
-  if (!swipeState || swipeState.id !== id) return;
-  const card = document.getElementById(`card-${id}`);
-  if (!card) return;
-  const dx = e.clientX - swipeState.startX;
-  const dy = e.clientY - swipeState.startY;
-  if (!swipeState.dragging) {
-    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-    if (Math.abs(dy) > Math.abs(dx)) { swipeState.dragging = false; return; }
-    swipeState.dragging = true;
-  }
-  swipeState.moved = true;
-  swipeState.dx = dx;
-  card.style.transform = `translateX(${dx}px)`;
-}
+// ── SUBSCRIPTION ──
+function renderSub() {
+  const mo = subMonthly();
+  document.getElementById("sub-monthly").textContent = yen(mo);
+  document.getElementById("sub-annual").textContent  = yen(mo*12) + " / 年";
 
-function swipeEnd(e, id) {
-  if (!swipeState || swipeState.id !== id) { swipeState = null; return; }
-  const card = document.getElementById(`card-${id}`);
-  const dx = swipeState.dx;
-  const wasDragging = swipeState.dragging;
-  card.onpointermove = null; card.onpointerup = null; card.onpointercancel = null;
-  card.classList.remove("dragging");
-
-  if (wasDragging && dx <= -SWIPE_THRESHOLD) {
-    card.style.transform = `translateX(-100%)`;
-    card.style.opacity = "0";
-    setTimeout(() => deleteTask(id), 180);
-  } else if (wasDragging && dx >= SWIPE_THRESHOLD) {
-    card.style.transform = `translateX(0)`;
-    toggleDone(id);
-  } else {
-    card.style.transform = `translateX(0)`;
-  }
-  // クリック判定用に少し遅らせて moved フラグを解放
-  const moved = swipeState.moved;
-  setTimeout(() => { if (swipeState && swipeState.id === id) swipeState = null; }, moved ? 50 : 0);
-  if (!moved) swipeState = null;
-}
-
-function cardClick(e, id) {
-  if (swipeState && swipeState.moved) return;
-  openEdit(id);
-}
-
-// ── ジャンル定義 ──
-const GENRES = [
-  {
-    key: "work", label: "仕事", icon: "💼",
-    bg: "#EEEDFE", darkBg: "#26215C",
-    patterns: [/仕事|業務|提出|返信|メール|会議|資料|クライアント|請求書|打ち合わせ|ミーティング|報告|プロジェクト|締め切|納品/],
-  },
-  {
-    key: "money", label: "お金", icon: "💰",
-    bg: "#E1F5EE", darkBg: "#04342C",
-    patterns: [/申告|確定申告|税金|納税|支払|振込|請求|口座|銀行|保険|投資|節税|経費|収入|資産|年金|積立|ふるさと納税/],
-  },
-  {
-    key: "health", label: "健康・習慣", icon: "🏃",
-    bg: "#FCEBEB", darkBg: "#501313",
-    patterns: [/ジム|運動|筋トレ|トレーニング|ウォーキング|ランニング|ヨガ|ストレッチ|病院|通院|薬|クスリ|健診|健康診断|睡眠|食事|ダイエット|体重/],
-  },
-  {
-    key: "life", label: "生活", icon: "🏠",
-    bg: "#FAEEDA", darkBg: "#412402",
-    patterns: [/掃除|片付|整理|洗濯|家事|ゴミ|買い物|買|スーパー|コンビニ|修理|メンテ|点検|車検|交換|免許|引っ越し|家具|電球/],
-  },
-  {
-    key: "learn", label: "自己投資", icon: "📚",
-    bg: "#E6F1FB", darkBg: "#042C53",
-    patterns: [/本|読書|勉強|学習|資格|セミナー|講座|スキル|語学|英語|プログラミング|コース/],
-  },
-  {
-    key: "people", label: "人間関係", icon: "👥",
-    bg: "#FBEAF0", darkBg: "#4B1528",
-    patterns: [/友達|友人|家族|親|連絡|食事|ランチ|飲み|飲み会|会う|遊ぶ|誕生日|プレゼント|お礼|お見舞い/],
-  },
-  {
-    key: "other", label: "その他", icon: "📦",
-    bg: "#F1EFE8", darkBg: "#2C2C2A",
-    patterns: [/.*/],
-  },
-];
-
-// ── 優先度定義 ──
-const PRIORITY = {
-  p1: {
-    patterns: [/申告|納税|税金|締め切|期限|締切|〆切|今日|急ぎ|至急|緊急|支払|振込|請求|提出|返信|連絡|確認|病院|薬|車検|更新|免許/],
-    label: "今日", cls: "badge-p1", dot: "dot-p1",
-    reason: t => match(t, [[/申告/,"期限あり"],[/支払|振込/,"金銭的期限あり"],[/病院/,"健康最優先"],[/返信|連絡/,"相手待ち"],[/提出/,"書類期限あり"],[/.*/, "緊急度高い"]]),
-  },
-  p2: {
-    patterns: [/買|購入|掃除|片付|洗濯|家事|運動|ジム|筋トレ|美容|散髪|修理|メンテ|友達|食事|飲み会/],
-    label: "今週", cls: "badge-p2", dot: "dot-p2",
-    reason: t => match(t, [[/買|購入/,"在庫切れ前に"],[/掃除|片付/,"定期的にやると楽"],[/運動|ジム/,"習慣化が大事"],[/美容|散髪/,"余裕があるときに"],[/修理/,"放置で悪化の可能性"],[/.*/, "今週中に対応推奨"]]),
-  },
-  p3: {
-    patterns: [/.*/],
-    label: "後回し", cls: "badge-p3", dot: "dot-p3",
-    reason: t => match(t, [[/本|読書|勉強/,"自己投資、急がなくてOK"],[/旅行|計画/,"じっくり計画を"],[/.*/, "今すぐでなくてOK"]]),
-  },
-};
-
-function match(text, map) {
-  for (const [p, v] of map) if (p.test(text)) return v;
-  return "";
-}
-
-function classifyGenre(text) {
-  for (const g of GENRES) {
-    if (g.key === "other") continue;
-    if (g.patterns.some(p => p.test(text))) return g.key;
-  }
-  return "other";
-}
-
-function classifyPriority(text) {
-  for (const [k, r] of Object.entries(PRIORITY)) {
-    if (k === "p3") continue;
-    if (r.patterns.some(p => p.test(text))) return k;
-  }
-  return "p3";
-}
-
-// ── ジャンル別レンダリング ──
-const openGenres = {};
-
-function renderGenre() {
-  const active = tasks.filter(t => !t.done);
-  const body = document.getElementById("genre-body");
-
-  if (active.length === 0) {
-    body.innerHTML = `<div class="empty"><div class="empty-icon">🗂</div>タスクがありません<br>Inboxから追加してください</div>`;
-    return;
-  }
-
-  // ジャンルごとに仕分け
-  const grouped = {};
-  GENRES.forEach(g => grouped[g.key] = []);
-  active.forEach(t => {
-    const gk = t.genreOverride || classifyGenre(t.text);
-    const pk = t.priorityOverride || classifyPriority(t.text);
-    grouped[gk].push({ ...t, pk });
-  });
-
-  // 優先度順にソート（p1→p2→p3）
-  const order = { p1: 0, p2: 1, p3: 2 };
-  Object.values(grouped).forEach(arr => arr.sort((a,b) => order[a.pk] - order[b.pk]));
-
-  body.innerHTML = GENRES
-    .filter(g => grouped[g.key].length > 0)
-    .map(g => {
-      const items = grouped[g.key];
-      const isOpen = openGenres[g.key] !== false; // デフォルト開く
-      const itemsHtml = items.map(t => {
-        const pr = PRIORITY[t.pk];
-        const reason = t.priorityOverride ? "手動設定" : pr.reason(t.text);
-        return `<div class="genre-item" onclick="openEdit(${t.id})">
-          <div class="priority-dot ${pr.dot}"></div>
-          <div class="genre-item-body">
-            <div class="genre-item-text">${esc(t.text)}</div>
-            ${reason ? `<div class="genre-item-meta">${reason}</div>` : ""}
-          </div>
-          <span class="priority-badge ${pr.cls}">${pr.label}</span>
-        </div>`;
-      }).join("");
-
-      return `<div class="genre-block">
-        <div class="genre-header" onclick="toggleGenre('${g.key}')">
-          <div class="genre-title">
-            <div class="genre-icon" style="background:${g.bg}">${g.icon}</div>
-            ${g.label}
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="genre-count">${items.length}件</span>
-            <span class="genre-chevron${isOpen ? " open" : ""}" id="chevron-${g.key}">▾</span>
-          </div>
-        </div>
-        <div class="genre-items" id="items-${g.key}" style="display:${isOpen ? "block" : "none"}">
-          ${itemsHtml}
-        </div>
-      </div>`;
-    }).join("");
-}
-
-function toggleGenre(key) {
-  openGenres[key] = openGenres[key] === false ? true : false;
-  const items = document.getElementById(`items-${key}`);
-  const chevron = document.getElementById(`chevron-${key}`);
-  if (items) items.style.display = openGenres[key] === false ? "none" : "block";
-  if (chevron) chevron.classList.toggle("open", openGenres[key] !== false);
-}
-
-function sortAndSwitch() {
-  const active = tasks.filter(t => !t.done);
-  if (active.length === 0) { toast("タスクがありません"); return; }
-  switchTab("genre");
-  toast("ジャンル別に整理しました");
-}
-
-function buildSummaryText() {
-  const active = tasks.filter(t => !t.done);
-  const grouped = {};
-  GENRES.forEach(g => grouped[g.key] = []);
-  active.forEach(t => {
-    const gk = t.genreOverride || classifyGenre(t.text);
-    const pk = t.priorityOverride || classifyPriority(t.text);
-    grouped[gk].push({ ...t, pk });
-  });
-  const order = { p1: 0, p2: 1, p3: 2 };
-  Object.values(grouped).forEach(arr => arr.sort((a,b) => order[a.pk] - order[b.pk]));
-
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("ja-JP", {year:"numeric", month:"long", day:"numeric", weekday:"short"});
-
-  const lines = [];
-  lines.push(`📋 タスク一覧（${dateStr}）`);
-  lines.push("");
-
-  GENRES.filter(g => grouped[g.key].length > 0).forEach(g => {
-    lines.push(`${g.icon} ${g.label}`);
-    grouped[g.key].forEach(t => {
-      const pr = PRIORITY[t.pk];
-      lines.push(`・[${pr.label}] ${t.text}`);
+  const ctx = document.getElementById("subChart");
+  if (subChart) subChart.destroy();
+  if (state.sub.length > 0) {
+    subChart = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: state.sub.map(s=>s.name||"無名"),
+        datasets: [{
+          data: state.sub.map(s=>s.cycle==="year"?(+s.amount/12):(+s.amount||0)),
+          backgroundColor: state.sub.map((_,i)=>SUB_COLORS[i%SUB_COLORS.length]),
+          borderWidth:0, hoverOffset:8
+        }]
+      },
+      options: { cutout:"65%", plugins:{ legend:{ labels:{ color:"#888", font:{size:11}, padding:12, boxWidth:10 } } } }
     });
-    lines.push("");
-  });
-
-  if (active.length === 0) {
-    lines.push("（タスクはありません）");
   }
 
-  return lines.join("\n").trim();
+  const listEl = document.getElementById("sub-list");
+  listEl.innerHTML = state.sub.length === 0
+    ? `<div class="empty-state">まだサブスクがありません<br>下のボタンから追加してください</div>`
+    : state.sub.map((item,i)=>buildSubCard(item,i)).join("");
 }
 
-function copyAsText() {
-  const active = tasks.filter(t => !t.done);
-  if (active.length === 0) { toast("タスクがありません"); return; }
-
-  const text = buildSummaryText();
-  const btn = document.getElementById("copyBtn");
-
-  const showCopied = () => {
-    const original = "📋 まとめてテキスト";
-    btn.textContent = "✓ コピーしました";
-    btn.classList.add("copied");
-    setTimeout(() => { btn.textContent = original; btn.classList.remove("copied"); }, 1800);
-    toast("テキストをコピーしました");
-  };
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(showCopied).catch(() => fallbackCopy(text, showCopied));
-  } else {
-    fallbackCopy(text, showCopied);
-  }
+function buildSubCard(item, i) {
+  const color = SUB_COLORS[i % SUB_COLORS.length];
+  const moEq  = item.cycle==="year" ? `<div class="computed-jpy" style="margin-top:8px">月換算 ${yen(+item.amount/12)}</div>` : "";
+  return `<div class="sub-card">
+    <div class="sub-card-top">
+      <div class="sub-dot" style="background:${color}"></div>
+      <input class="name-input" type="text" placeholder="サービス名" value="${esc(item.name)}"
+        oninput="updateSub(${i},'name',this.value)">
+      <button class="delete-btn" onclick="delSub(${i})">×</button>
+    </div>
+    <div class="sub-grid">
+      <div class="sub-field">
+        <label>金額</label>
+        <div class="input-row" style="padding:9px 12px">
+          <span class="input-prefix">¥</span>
+          <input class="amount-input" type="number" inputmode="decimal" placeholder="0" value="${item.amount||''}"
+            oninput="updateSub(${i},'amount',this.value)">
+        </div>
+      </div>
+      <div class="sub-field">
+        <label>サイクル</label>
+        <select class="sub-cycle-sel" onchange="updateSub(${i},'cycle',this.value)">
+          <option value="month"${item.cycle!=="year"?" selected":""}>月払い</option>
+          <option value="year"${item.cycle==="year"?" selected":""}>年払い</option>
+        </select>
+      </div>
+    </div>
+    ${moEq}
+  </div>`;
 }
 
-function fallbackCopy(text, onDone) {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.style.position = "fixed";
-  ta.style.opacity = "0";
-  document.body.appendChild(ta);
-  ta.select();
+function addSub() { state.sub.push({name:"",amount:0,cycle:"month"}); save(); }
+function updateSub(i,prop,val) { state.sub[i][prop]=prop==="amount"?+val:val; save(); }
+function delSub(i) { state.sub.splice(i,1); save(); }
+
+// ── Crypto prices ──
+async function fetchPrices() {
   try {
-    document.execCommand("copy");
-    onDone();
-  } catch (e) {
-    toast("コピーに失敗しました");
-  }
-  document.body.removeChild(ta);
+    const ids = Object.values(CRYPTO_IDS).join(",");
+    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=jpy`);
+    const d = await res.json();
+    const map = Object.fromEntries(Object.entries(CRYPTO_IDS).map(([sym,id])=>[sym, d[id]?.jpy||prices[sym]]));
+    prices = { ...prices, ...map };
+    render();
+  } catch(e) { console.warn("Price fetch failed", e); }
 }
 
-function voice() {
-  if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
-    toast("このブラウザは音声入力非対応です"); return;
-  }
-  const R = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const r = new R();
-  r.lang = "ja-JP";
-  const btn = document.getElementById("voiceBtn");
-  const card = document.getElementById("inputCard");
+// ── Init ──
+fetchPrices();
+renderHome();
+setInterval(fetchPrices, 300000);
 
-  const stopListening = () => {
-    btn.classList.remove("listening");
-    btn.textContent = "🎤 音声";
-    card.classList.remove("listening");
-  };
-
-  r.onstart = () => {
-    btn.classList.add("listening");
-    btn.textContent = "● 録音中";
-    card.classList.add("listening");
-  };
-  r.onresult = e => { document.getElementById("memo").value = e.results[0][0].transcript; };
-  r.onerror = () => { toast("音声入力エラー"); stopListening(); };
-  r.onend = stopListening;
-  r.start();
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js");
 }
-
-function toast(msg) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.classList.add("show");
-  clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove("show"), 2200);
-}
-
-// ── 編集モーダル ──
-let editingId = null;
-let editGenre = null;
-let editPriority = null;
-
-function openEdit(id) {
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  editingId = id;
-  editGenre = t.genreOverride || classifyGenre(t.text);
-  editPriority = t.priorityOverride || classifyPriority(t.text);
-
-  document.getElementById("editText").value = t.text;
-
-  document.getElementById("editGenreChips").innerHTML = GENRES.map(g => `
-    <button type="button" class="chip${g.key === editGenre ? " selected" : ""}" data-genre="${g.key}" onclick="pickGenre('${g.key}')">${g.icon} ${g.label}</button>
-  `).join("");
-
-  document.getElementById("editPriorityChips").innerHTML = Object.entries(PRIORITY).map(([k, p]) => `
-    <button type="button" class="chip ${k}${k === editPriority ? " selected" : ""}" data-priority="${k}" onclick="pickPriority('${k}')">${p.label}</button>
-  `).join("");
-
-  document.getElementById("editModal").classList.add("open");
-}
-
-function pickGenre(key) {
-  editGenre = key;
-  document.querySelectorAll("#editGenreChips .chip").forEach(c => c.classList.toggle("selected", c.dataset.genre === key));
-}
-
-function pickPriority(key) {
-  editPriority = key;
-  document.querySelectorAll("#editPriorityChips .chip").forEach(c => c.classList.toggle("selected", c.dataset.priority === key));
-}
-
-function closeEdit() {
-  document.getElementById("editModal").classList.remove("open");
-  editingId = null;
-}
-
-function saveEdit() {
-  const t = tasks.find(t => t.id === editingId);
-  if (!t) { closeEdit(); return; }
-  const newText = document.getElementById("editText").value.trim();
-  if (!newText) { toast("内容を入力してください"); return; }
-  t.text = newText;
-  t.genreOverride = editGenre;
-  t.priorityOverride = editPriority;
-  persist(); render();
-  closeEdit();
-  toast("保存しました");
-}
-
-function deleteFromEdit() {
-  if (editingId == null) return;
-  const id = editingId;
-  closeEdit();
-  deleteTask(id);
-}
-
-// 初期表示
-document.getElementById("inbox-view").style.display = "block";
-document.getElementById("genre-view").style.display = "none";
 </script>
 </body>
 </html>
