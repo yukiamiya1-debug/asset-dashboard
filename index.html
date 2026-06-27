@@ -480,9 +480,6 @@ html, body {
 const STORAGE_KEY = "asset-dashboard-v2";
 let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { bank:[], stock:[], crypto:[], sub:[] };
 
-const CRYPTO_IDS = {
-  BTC:"bitcoin", USDT:"tether"
-};
 let prices = { BTC:10000000, USDT:150 };
 
 const SUB_COLORS = ["#d4af37","#4a9eff","#ff6b6b","#50fa7b","#bd93f9","#ffb86c","#8be9fd","#ff79c6","#a8e6cf","#ffd3b6"];
@@ -723,22 +720,28 @@ function updateSubAmount(i, val) {
 function updateSub(i,prop,val) { state.sub[i][prop]=prop==="amount"?+val:val; save(); }
 function delSub(i) { state.sub.splice(i,1); save(); }
 
-// ── Crypto prices ──
+// ── Crypto prices（Binance公開API → 制限なし・APIキー不要）──
+// BTC/JPY, USDT/JPY を Binance から取得
 async function fetchPrices() {
   try {
-    const ids = Object.values(CRYPTO_IDS).join(",");
-    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=jpy`);
-    const d = await res.json();
-    const map = Object.fromEntries(Object.entries(CRYPTO_IDS).map(([sym,id])=>[sym, d[id]?.jpy||prices[sym]]));
-    prices = { ...prices, ...map };
+    const [btcRes, usdtRes] = await Promise.all([
+      fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCJPY"),
+      fetch("https://api.binance.com/api/v3/ticker/price?symbol=USDTJPY")
+    ]);
+    const btc  = await btcRes.json();
+    const usdt = await usdtRes.json();
+    if (btc.price)  prices.BTC  = Math.round(+btc.price);
+    if (usdt.price) prices.USDT = Math.round(+usdt.price * 100) / 100;
     render();
-  } catch(e) { console.warn("Price fetch failed", e); }
+  } catch(e) {
+    console.warn("Price fetch failed", e);
+  }
 }
 
 // ── Init ──
 fetchPrices();
 renderHome();
-setInterval(fetchPrices, 300000);
+setInterval(fetchPrices, 60000); // 60秒ごと
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./service-worker.js");
